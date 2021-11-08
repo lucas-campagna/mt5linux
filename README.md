@@ -1,6 +1,6 @@
 # MetaTrader 5 for linux system
 
-A simple package that use [wine](https://www.winehq.org), [rpyc](https://github.com/tomerfiliba-org/rpyc) and a Python Windows version to enable the usage of [MetaTrader5](https://pypi.org/project/MetaTrader5) on linux.
+A simple package that use [wine](https://www.winehq.org), [rpyc](https://github.com/tomerfiliba-org/rpyc) and a Python Windows version to allow the use of [MetaTrader5](https://pypi.org/project/MetaTrader5) on linux.
 
 ## Install
 
