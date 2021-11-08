@@ -7,7 +7,7 @@ A simple package that use [wine](https://www.winehq.org), [rpyc](https://github.
 As usual:
 
 ```
-pip instal mt5linux
+pip install mt5linux
 ```
 
 ## How to use
