@@ -6,6 +6,7 @@ setup(
     description='MetaTrader5 for linux users',
     author='Lucas Prett Campagna',
     license='MIT',
+    url = 'https://github.com/lucas-campagna/mt5linux',
     install_requires=open('requirements.txt','r').read().split('\n'),
     setup_requires=[],
     tests_require=[],
