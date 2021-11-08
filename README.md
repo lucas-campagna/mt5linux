@@ -2,7 +2,7 @@
 
 A simple package that use [wine](https://www.winehq.org), [rpyc](https://github.com/tomerfiliba-org/rpyc) and a Python Windows version to enable the usage of [MetaTrader5](https://pypi.org/project/MetaTrader5) on linux.
 
-## Instal
+## Install
 
 As usual:
 
