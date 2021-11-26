@@ -3170,7 +3170,7 @@ Account сurrency: USD
         code=f'mt5.order_check(*{args},**{kwargs})'
         return self.__conn.eval(code)
 
-    def order_send(self,*args,**kwargs):
+    def order_send(self,request):
         r'''
 # order_send
 
@@ -3376,7 +3376,7 @@ MetaTrader5 package version:  5.0.29
 
     `order_check`, `OrderSend`,Trading operation types, Trading request structure, Structure of the trading request check results, Structure of the trading request result
         '''
-        code=f'mt5.order_send(*{args},**{kwargs})'
+        code=f'mt5.order_send({request})'
         return self.__conn.eval(code)
 
     def positions_total(self,*args,**kwargs):
