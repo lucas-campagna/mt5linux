@@ -362,6 +362,7 @@ port: int
     default = 18812
         '''
         self.__conn = rpyc.classic.connect(host,port)
+        self.__conn._config['sync_request_timeout'] = 300 #5 min
         self.__conn.execute('import MetaTrader5 as mt5')
         self.__conn.execute('import datetime')
 
