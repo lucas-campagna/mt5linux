@@ -363,6 +363,7 @@ port: int
         '''
         self.__conn = rpyc.classic.connect(host,port)
         self.__conn.execute('import MetaTrader5 as mt5')
+        self.__conn.execute('import datetime')
 
     def __del__(self):
         pass
@@ -2286,7 +2287,7 @@ Display dataframe with data
 
 
         '''
-        code=f'mt5.copy_rates_range("{symbol}", {timeframe}, {repr(date_from.astimezone())}, {date_to})'
+        code=f'mt5.copy_rates_range("{symbol}", {timeframe}, {repr(date_from.astimezone())}, {repr(date_to.astimezone())})'
         return rpyc.utils.classic.obtain(self.__conn.eval(code))
 
     def copy_ticks_from(self,symbol, date_from, count, flags):
