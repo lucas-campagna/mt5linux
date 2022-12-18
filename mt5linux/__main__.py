@@ -158,7 +158,7 @@ def main():
     port=args.port
     host=args.host
     #
-    Popen(['mkdir','-p',server_dir]).wait()
+    Popen(['mkdir','-p',server_dir],shell=True).wait()
     __generate_server_classic(os.path.join(server_dir,server_code))
     Popen([
             wine_cmd,
@@ -168,7 +168,7 @@ def main():
             host,
             '-p',
             str(port),
-        ],
+        ],shell=True,
     ).wait()
 
 
