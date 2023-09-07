@@ -50,7 +50,6 @@ mt5 = MetaTrader5(
 # use as you learned from: https://www.mql5.com/en/docs/integration/python_metatrader5/
 mt5.initialize()
 mt5.terminal_info()
-mt5.copy_rates_from_pos('GOOG',mt5.TIMEFRAME_M1,0,1000)
 # ...
 # don't forget to shutdown
 mt5.shutdown()
@@ -59,3 +58,8 @@ mt5.shutdown()
 4. Be happy!
 
 On step 2 you can provide the port, host, executable, etc... just type `python -m mt5linux --help`.
+
+## Credits
+
+Thanks to [Lucas Campagna](https://github.com/lucas-campagna) who wrote the following packages
+Original repository : https://github.com/lucas-campagna/mt5linux
