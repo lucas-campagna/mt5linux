@@ -168,7 +168,7 @@ def main():
             host,
             '-p',
             str(port),
-        ],shell=True,
+        ],
     ).wait()
 
 
