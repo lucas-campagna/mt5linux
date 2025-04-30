@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mt5linux"
+version = "0.2.0"
+authors = [
+    { name = "Lucas Prett Campagna", email = "lucasprett129@gmail.com" },
+]
+description = "MetaTrader5 for Linux"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "rpyc"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/lucas-campagna/mt5linux"
