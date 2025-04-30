@@ -1,61 +1,55 @@
-# MetaTrader 5 for linux system
+# mt5linux
 
-A simple package that uses [wine](https://www.winehq.org), [rpyc](https://github.com/tomerfiliba-org/rpyc) and a Python Windows version to allow using [MetaTrader5](https://pypi.org/project/MetaTrader5) on Linux.
+## How To Use
 
-## Install
-
-1. Install [Wine](https://wiki.winehq.org/Download).
-
-2. Install [Python for Windows](https://www.python.org/downloads/windows/) on Linux with the help of Wine.
-
-3. Find the path to `python.exe`.
-
-    - Mine is installed on `/home/user/.wine/drive_c/users/user/Local Settings/Application Data/Programs/Python/Python39`.
-
-4. Install [mt5](https://www.mql5.com/en/docs/integration/python_metatrader5) library on your **Windows** Python version.
+1. Install (as per [MT5 Linux user guide](https://www.metatrader5.com/en/terminal/help/start_advanced/install_linux)):
+    * [Wine](https://www.winehq.org) in your Linux machine.
+    * [Python for Windows](https://www.python.org) inside Wine.
+    * [MT5 software](https://www.metatrader5.com) inside Wine.
+    
+2. Install MetaTrader5 package inside your Wine Python installation.
 
 ```
 pip install MetaTrader5
-pip install --upgrade MetaTrader5
 ```
 
-5. Install this package on both **Windows** and **Linux** Python versions:
+3. Install mt5linux package in both Wine and Linux Python versions.
 
 ```
 pip install mt5linux
 ```
 
-## How To Use
+4. Establish the connection.
 
-Follow the steps:
+* Open the MT5 terminal in Wine.
 
-1. Open MetaTrader5.
+* Run the MT5 server in Wine.
 
-2. On **Windows** side, start the server on a terminal:
+`python -m mt5linux <path/to/python.exe>`,
 
-```
-python -m mt5linux <path/to/python.exe>
-```
+or if you want to specify the host and port:
 
-3. On **Linux** side, make your scripts/notebooks as you did with MetaTrader5:
+`python -m mt5linux --host localhost --port 8001 <path/to/python.exe>`
+
+* Run your Linux script.
 
 ```python
 # import the package
 from mt5linux import MetaTrader5
-# connecto to the server
-mt5 = MetaTrader5(
-    # host = 'localhost' (default)
-    # port = 18812       (default)
-) 
-# use as you learned from: https://www.mql5.com/en/docs/integration/python_metatrader5/
-mt5.initialize()
-mt5.terminal_info()
-mt5.copy_rates_from_pos('GOOG',mt5.TIMEFRAME_M1,0,1000)
-# ...
-# don't forget to shutdown
-mt5.shutdown()
+
+# establish the connection
+mt5 = MetaTrader5()
+
+# or if you specified the host and port in the previous step:
+mt5 = MetaTrader5(host="localhost", port=8001)
 ```
 
-4. Be happy!
+5. Test the setup with a DEMO account.
 
-On step 2 you can provide the port, host, executable, etc... just type `python -m mt5linux --help`.
+6. Be happy!
+
+More:
+
+1. See MetaQuotes' [official documentation](https://www.mql5.com/en/docs/python_metatrader5).
+
+2. As an alternative to the setup above, you can also opt to run a Docker image of MT5 with x11/noVNC remote access. Check out [mt5docker](https://github.com/hpdeandrade/mt5docker) for details.
