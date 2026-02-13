@@ -21,7 +21,7 @@ if (base_dir / "requirements.txt").exists():
 setup(
     name="mt5linux",
     packages=find_packages(include=["mt5linux"]),
-    version="0.2.0",
+    version="0.1.10",
     description="MetaTrader5 for linux users",
     long_description=long_description,
     long_description_content_type="text/markdown",
