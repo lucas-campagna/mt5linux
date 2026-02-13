@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mt5linux"
-version = "0.2.2"
+version = "0.2.3"
 description = "MetaTrader5 for linux users"
 readme = "README.md"
 license = {text = "MIT"}
@@ -12,7 +12,7 @@ authors = [{name = "Lucas Prett Campagna"}]
 dependencies = [
     "numpy",
     "plumbum==1.7.0",
-    "pyparsing==2.4.7",
+    "pyparsing>=3.1.0,<4",
     "rpyc==5.2.3",
 ]
 
