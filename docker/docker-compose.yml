@@ -1,0 +1,14 @@
+services:
+  mt5docker:
+    image: mt5docker:latest
+    container_name: mt5docker
+    environment:
+      - MT5_HOST:0.0.0.0=$MT5_HOST
+      - VNC_PASSWORD:password=$VNC_PASSWORD
+    ports:
+      - 5901:5901
+      - 6081:6081
+      - 8001:8001
+    restart: "no"
+    stdin_open: true
+    tty: true
