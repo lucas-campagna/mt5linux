@@ -1,3 +1,2 @@
 MetaTrader5>=5
-mt5linux
 numpy<2

@@ -1,10 +1,10 @@
 services:
-  mt5docker:
-    image: mt5docker:latest
-    container_name: mt5docker
+  mt5linux:
+    image: lprett/mt5linux:latest
+    container_name: mt5linux
     environment:
-      - MT5_HOST:0.0.0.0=$MT5_HOST
-      - VNC_PASSWORD:password=$VNC_PASSWORD
+      MT5_HOST: ${MT5_HOST:-0.0.0.0}
+      VNC_PASSWORD: ${VNC_PASSWORD:-password}
     ports:
       - 5901:5901
       - 6081:6081
