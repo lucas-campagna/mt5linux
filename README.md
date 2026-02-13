@@ -22,6 +22,15 @@ A package that uses [Wine](https://www.winehq.org), [RPyC](https://github.com/to
    pip install mt5linux
    ```
 
+## Docker
+
+Alternatively, you can run this library using Docker. A `docker-compose.yml` file is available in the `docker/` folder to simplify the setup. Navigate to the `docker/` folder and run:
+
+```bash
+cd docker
+docker-compose up -d
+```
+
 ## Usage
 
 1. Open MetaTrader5.
