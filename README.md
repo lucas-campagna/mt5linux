@@ -26,12 +26,7 @@ For an explanation of who should use mt5linux and why, see [Motivation and Use C
 
 ## Docker
 
-Alternatively, you can run this library using Docker. A `docker-compose.yml` file is available in the `docker/` folder to simplify the setup. Navigate to the `docker/` folder and run:
-
-```bash
-cd docker
-docker-compose up -d
-```
+Alternatively, you can run this library using Docker, see the [docs](https://github.com/lucas-campagna/mt5linux/tree/master/docker#docker).
 
 ## Usage
 
@@ -66,3 +61,8 @@ docker-compose up -d
    ```
 
    For full API documentation, see the [official MetaTrader5 Python integration](https://www.mql5.com/en/docs/integration/python_metatrader5/).
+
+## Thanks
+
+- [hpdeandrade](https://github.com/hpdeandrade) for many improvements and insights about [docker](https://github.com/ananta-dev).
+- [ananta-dev](https://github.com/ananta-dev) for project [motivation](https://github.com/lucas-campagna/mt5linux/blob/master/docs/MOTIVATION.md#motivation-and-use-cases).
