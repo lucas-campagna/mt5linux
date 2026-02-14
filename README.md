@@ -2,6 +2,8 @@
 
 A package that uses [Wine](https://www.winehq.org), [RPyC](https://github.com/tomerfiliba-org/rpyc), and a Python Windows version to run [MetaTrader5](https://pypi.org/project/MetaTrader5) on Linux.
 
+For an explanation of who should use mt5linux and why, see [Motivation and Use Cases](docs/MOTIVATION.md).
+
 ## Installation
 
 1. Install [Wine](https://wiki.winehq.org/Download).
