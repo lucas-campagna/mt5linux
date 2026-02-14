@@ -1,6 +1,6 @@
 # Motivation and Use Cases
 
-*This section explains the purpose of mt5linux and the motivation behind it, courtesy of a community member.*
+*This section explains the purpose of mt5linux and the motivation behind it, courtesy of [ananta-dev](https://github.com/ananta-dev).*
 
 ---
 
