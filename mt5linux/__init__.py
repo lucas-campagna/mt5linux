@@ -1873,7 +1873,7 @@ class MetaTrader5(object):
 
 
         """
-        code = f"mt5.market_book_release(symbol)"
+        code = f"mt5.market_book_release({symbol})"
         return self.__conn.eval(code)
 
     def copy_rates_from(self, symbol, timeframe, date_from, count):
