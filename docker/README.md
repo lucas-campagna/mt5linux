@@ -4,9 +4,39 @@ Run mt5linux using Docker for an isolated environment with Wine and all dependen
 
 ## Quick Start
 
+You have two options:
+
+### Option 1: Use pre-built image (recommended)
+
+Simply copy the `docker-compose.yml` file locally and run:
+
 ```bash
-cd docker
-docker-compose up -d
+docker compose up -d
+```
+
+Or run directly with docker:
+
+```bash
+docker run -d \
+  --name mt5linux \
+  -p 6081:6081 \
+  -p 18812:18812 \
+  -e MT5_HOST=0.0.0.0 \
+  -e VNC_PASSWORD=password \
+  lprett/mt5linux:latest
+```
+
+### Option 2: Build locally
+
+```bash
+docker build -t mt5linux docker/
+docker run -d \
+  --name mt5linux \
+  -p 6081:6081 \
+  -p 18812:18812 \
+  -e MT5_HOST=0.0.0.0 \
+  -e VNC_PASSWORD=password \
+  mt5linux
 ```
 
 ## Access
@@ -18,12 +48,12 @@ docker-compose up -d
 
 Environment variables can be configured via `.env` file or directly in `docker-compose.yml`:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `MT5_HOST` | `0.0.0.0` | Host to bind the MT5 server |
+| Variable       | Default    | Description                   |
+| -------------- | ---------- | ----------------------------- |
+| `MT5_HOST`     | `0.0.0.0`  | Host to bind the MT5 server   |
 | `VNC_PASSWORD` | `password` | VNC password for noVNC access |
-| `NVC_PORT` | `6081` | Port for noVNC web interface |
-| `MT5_PORT` | `18812` | Port for MT5 RPyC server |
+| `NVC_PORT`     | `6081`     | Port for noVNC web interface  |
+| `MT5_PORT`     | `18812`    | Port for MT5 RPyC server      |
 
 ## Example .env file
 
@@ -39,16 +69,10 @@ Once the container is running, connect from your Linux Python:
 ```python
 from mt5linux import MetaTrader5
 
-mt5 = MetaTrader5(host="localhost")
+mt5 = MetaTrader5(host="localhost", port=18812)
 mt5.initialize()
 mt5.terminal_info()
 mt5.shutdown()
-```
-
-## Build Image Locally
-
-```bash
-docker build -t mt5linux docker/
 ```
 
 ## Stop
