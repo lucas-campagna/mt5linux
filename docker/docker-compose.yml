@@ -6,9 +6,8 @@ services:
       MT5_HOST: ${MT5_HOST:-0.0.0.0}
       VNC_PASSWORD: ${VNC_PASSWORD:-password}
     ports:
-      - 5901:5901
-      - 6081:6081
-      - 8001:8001
+      - 6081:${NVC_PORT:-6081}
+      - 18812:${MT5_PORT:-18812}
     restart: "no"
     stdin_open: true
     tty: true
