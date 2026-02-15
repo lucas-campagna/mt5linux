@@ -16,6 +16,10 @@ dependencies = [
     "rpyc==5.2.3",
 ]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mt5linux*"]
+
 [project.urls]
 Homepage = "https://github.com/lucas-campagna/mt5linux"
 
