@@ -26,6 +26,8 @@ docker run -d \
   lprett/mt5linux:latest
 ```
 
+> The `latest` image tag is pre MT5 installation, there is a `mt5-installed` image tag which contains MT5 already installed.
+
 ### Option 2: Build locally
 
 ```bash
