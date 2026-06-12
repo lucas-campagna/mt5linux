@@ -32,7 +32,7 @@ if ! wine python -m pip show mt5linux &> /dev/null; then
     wine python -m pip install mt5linux
 fi
 # open mt5 linux
-wine python -m mt5linux --host $MT5_HOST
+wine python -m mt5linux --host $MT5_HOST --port 18812
 
 # prevent container termination
 while true
