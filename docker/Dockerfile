@@ -1,37 +1,29 @@
-FROM tobix/pywine:3.12
+FROM alpine:3.20
 
-# Update and install required packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    x11vnc \
+# Install 64-bit Wine, Xvfb, x11vnc, noVNC dependencies
+RUN apk add --no-cache \
     xvfb \
-    fluxbox \
-    supervisor \
-    cabextract \
-    git \
-    procps \
-    python3-websockify \
-    python3-numpy \
-    xdotool \
-    xautomation \
-    wmctrl \
-    expect \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    x11vnc \
+    python3 \
+    py3-websockify \
+    wine
 
+# noVNC (minimal clone, no git history)
+RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC && \
+    rm -rf /opt/noVNC/.git
 
-WORKDIR /mt5linux
-COPY requirements.txt ./
+# Wine prefix directory
+RUN mkdir -p /opt/wineprefix
 
-RUN wine pip install -r requirements.txt
+# Copy startup script
+COPY run_mt5.sh /run_mt5.sh
+RUN chmod +x /run_mt5.sh
 
-RUN curl -L -o winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
-    chmod +x winetricks && \
-    mv winetricks /usr/bin/ && \
-    xvfb-run sh -c "winetricks --unattended vcrun2019"
+ENV DISPLAY=:0
+ENV WINEPREFIX=/opt/wineprefix
+ENV VNC_PORT=5900
+ENV NOVNC_PORT=8080
 
-RUN curl -L -o noVNC.zip https://github.com/novnc/noVNC/archive/refs/heads/master.zip && unzip noVNC.zip && rm noVNC.zip
+EXPOSE 8080
 
-COPY start.sh mt5cfg.ini test_connection.py install_mt5.sh mt5_watchdog.sh ./
-RUN chmod +x ./start.sh ./install_mt5.sh ./mt5_watchdog.sh
-
-ENTRYPOINT ["./start.sh"]
+ENTRYPOINT ["/run_mt5.sh"]
