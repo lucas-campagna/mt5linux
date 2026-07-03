@@ -1,12 +1,16 @@
 FROM alpine:3.20
 
-# Install 64-bit Wine, Xvfb, x11vnc, noVNC dependencies
+# Install 64-bit Wine, Xvfb, x11vnc, Python, pip, and git
 RUN apk add --no-cache \
     xvfb \
     x11vnc \
     python3 \
-    py3-websockify \
+    py3-pip \
+    git \
     wine
+
+# Install websockify via pip
+RUN pip3 install --no-cache-dir --break-system-packages websockify
 
 # noVNC (minimal clone, no git history)
 RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC && \
