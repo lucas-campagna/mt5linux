@@ -37,6 +37,10 @@ sleep 1
 echo "Starting MetaTrader 5..."
 cd /app
 
+# Install Windows dependencies
+echo "Installing Windows dependencies (Common Controls)..."
+winetricks --unattended comctl32
+
 if [ ! -f "terminal64.exe" ]; then
     echo "MetaTrader 5 not found. Downloading..."
     curl -L -o mt5setup.exe https://download.mql5.com/cdn/web/metaquotes.ltd/mt5/mt5setup.exe
