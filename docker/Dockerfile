@@ -1,20 +1,37 @@
-FROM alpine:3.20
+# Stage 1: Build stage - includes all build dependencies
+FROM alpine:3.20 AS builder
 
-# Install 64-bit Wine, Xvfb, x11vnc, Python, pip, and git
+# Install build dependencies
 RUN apk add --no-cache \
-    xvfb \
-    x11vnc \
+    git \
     python3 \
     py3-pip \
-    git \
-    wine
+    wine \
+    xvfb \
+    x11vnc
 
 # Install websockify via pip
 RUN pip3 install --no-cache-dir --break-system-packages websockify
 
-# noVNC (minimal clone, no git history)
+# Clone noVNC and remove git history
 RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC && \
     rm -rf /opt/noVNC/.git
+
+# Stage 2: Runtime stage - minimal image with only runtime dependencies
+FROM alpine:3.20
+
+# Install only runtime dependencies
+RUN apk add --no-cache \
+    wine \
+    xvfb \
+    x11vnc \
+    python3
+
+# Copy websockify and noVNC from builder
+COPY --from=builder /usr/bin/websockify /usr/bin/
+COPY --from=builder /usr/lib/python3.12/site-packages/websockify /usr/lib/python3.12/site-packages/websockify
+COPY --from=builder /usr/lib/python3.12/site-packages/websockify-0.13.0.dist-info /usr/lib/python3.12/site-packages/websockify-0.13.0.dist-info
+COPY --from=builder /opt/noVNC /opt/noVNC
 
 # Wine prefix directory
 RUN mkdir -p /opt/wineprefix
