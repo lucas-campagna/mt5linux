@@ -9,3 +9,4 @@ services:
       - "8080:8080"
     volumes:
       - /tmp/mt5:/app
+      - ./mt5cfg.ini:/app/mt5cfg.ini
