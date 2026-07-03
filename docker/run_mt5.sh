@@ -37,8 +37,11 @@ sleep 1
 echo "Starting MetaTrader 5..."
 cd /app
 if [ ! -f "terminal64.exe" ]; then
-    echo "ERROR: terminal64.exe not found in /app"
-    exit 1
+    echo "MetaTrader 5 not found. Downloading..."
+    curl -L -o mt5setup.exe https://download.mql5.com/cdn/web/metaquotes.ltd/mt5/mt5setup.exe
+    echo "Installing MetaTrader 5..."
+    wine mt5setup.exe
+    rm -f mt5setup.exe
 fi
 
 wine terminal64.exe /config:/app/mt5cfg.ini &
