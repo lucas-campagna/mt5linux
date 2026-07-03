@@ -11,6 +11,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     procps \
     python3-websockify \
     python3-numpy \
+    xdotool \
+    xautomation \
+    wmctrl \
+    expect \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -27,8 +31,7 @@ RUN curl -L -o winetricks https://raw.githubusercontent.com/Winetricks/winetrick
 
 RUN curl -L -o noVNC.zip https://github.com/novnc/noVNC/archive/refs/heads/master.zip && unzip noVNC.zip && rm noVNC.zip
 
-COPY start.sh mt5cfg.ini test_connection.py ./
-
-RUN chmod +x ./start.sh
+COPY start.sh mt5cfg.ini test_connection.py install_mt5.sh mt5_watchdog.sh ./
+RUN chmod +x ./start.sh ./install_mt5.sh ./mt5_watchdog.sh
 
 ENTRYPOINT ["./start.sh"]

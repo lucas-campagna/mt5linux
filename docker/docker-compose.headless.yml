@@ -1,0 +1,11 @@
+services:
+  mt5linux:
+    image: lprett/mt5linux:latest
+    container_name: mt5-headless
+    restart: unless-stopped
+    ports:
+      - "6081:6081"
+    volumes:
+      - /tmp/mt5:/app
+      - ./run_mt5.sh:/run_mt5.sh
+    entrypoint: ["sh", "/run_mt5.sh"]

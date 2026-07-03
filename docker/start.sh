@@ -15,9 +15,13 @@ chmod 600 /mt5linux/passwd
 # install mt5 if not installed yet
 if [ ! -f "$WINEPREFIX/drive_c/Program Files/MetaTrader 5/terminal64.exe" ]; then
   curl -L -o mt5setup.exe https://download.mql5.com/cdn/web/metaquotes.ltd/mt5/mt5setup.exe
-  wine mt5setup.exe
-  wine taskkill /IM "terminal64.exe" /F
+  wine mt5setup.exe &
+  /mt5linux/install_mt5.sh
+  wine taskkill /IM "terminal64.exe" /F 2>/dev/null || true
 fi
+
+# start watchdog in background
+/mt5linux/mt5_watchdog.sh &
 
 # open mt5
 mv "/mt5linux/mt5cfg.ini" "$WINEPREFIX/drive_c/Program Files/MetaTrader 5"
@@ -31,8 +35,20 @@ cd /mt5linux
 if ! wine python -m pip show mt5linux &> /dev/null; then
     wine python -m pip install mt5linux
 fi
-# open mt5 linux
-wine python -m mt5linux --host $MT5_HOST --port 18812
+
+# build mt5linux command with optional login credentials
+MT5_CMD="wine python -m mt5linux --host $MT5_HOST --port 18812"
+if [ -n "$MT5_LOGIN" ]; then
+    MT5_CMD="$MT5_CMD --login $MT5_LOGIN"
+fi
+if [ -n "$MT5_PASSWORD" ]; then
+    MT5_CMD="$MT5_CMD --password $MT5_PASSWORD"
+fi
+if [ -n "$MT5_SERVER" ]; then
+    MT5_CMD="$MT5_CMD --server $MT5_SERVER"
+fi
+
+eval $MT5_CMD
 
 # prevent container termination
 while true

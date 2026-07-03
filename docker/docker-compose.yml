@@ -5,6 +5,9 @@ services:
     environment:
       MT5_HOST: ${MT5_HOST:-0.0.0.0}
       VNC_PASSWORD: ${VNC_PASSWORD:-password}
+      MT5_LOGIN: ${MT5_LOGIN:-}
+      MT5_PASSWORD: ${MT5_PASSWORD:-}
+      MT5_SERVER: ${MT5_SERVER:-}
     ports:
       - ${NVC_PORT:-6081}:6081
       - ${MT5_PORT:-18812}:18812
