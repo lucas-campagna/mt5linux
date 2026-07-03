@@ -48,8 +48,32 @@ if [ ! -f "terminal64.exe" ]; then
     rm -f mt5setup.exe
 fi
 
-wine64 /app/terminal64.exe /config:/app/mt5cfg.ini &
+# Start MT5 without config parameter
+wine64 /app/terminal64.exe &
 MT5_PID=$!
+
+# Wait for MT5 to load, then close unwanted windows
+sleep 10
+
+close_mt5_windows() {
+    echo "Closing unwanted MT5 windows..."
+    # Close Navigator window
+    xdotool search --name "Navigator" windowclose 2>/dev/null || true
+    # Close Toolbox window  
+    xdotool search --name "Toolbox" windowclose 2>/dev/null || true
+    xdotool search --name "Toolbox" windowclose 2>/dev/null || true
+    # Close Market Watch
+    xdotool search --name "Market Watch" windowclose 2>/dev/null || true
+    # Close chart windows (they have "Chart" in title but also symbol names)
+    for win in $(xdotool search --name "Chart"); do
+        xdotool windowclose $win 2>/dev/null || true
+    done
+    # Press Escape to close any dialogs
+    xdotool key Escape 2>/dev/null || true
+    echo "Done cleaning up windows"
+}
+
+close_mt5_windows &
 
 echo ""
 echo "All services started:"

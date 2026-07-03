@@ -9,6 +9,7 @@ RUN apk add --no-cache \
     wine \
     xvfb \
     x11vnc \
+    xdotool \
     gnutls \
     cabextract \
     curl
@@ -32,6 +33,7 @@ RUN apk add --no-cache \
     wine \
     xvfb \
     x11vnc \
+    xdotool \
     python3 \
     gnutls \
     cabextract
