@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "Installing dependencies..."
+apk add --no-cache xvfb xdotool curl x11vnc
+
 cleanup() {
     rm -f /tmp/.X99-lock
     rm -f /tmp/.X100-lock
