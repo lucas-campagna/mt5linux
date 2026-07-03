@@ -2,7 +2,15 @@
 set -e
 
 echo "Installing dependencies..."
-apk add --no-cache xvfb xdotool curl x11vnc
+apk add --no-cache xvfb xdotool curl x11vnc python3 py3-websockify
+
+echo "Installing noVNC..."
+if [ ! -d "/noVNC" ]; then
+    curl -L -o /noVNC.zip https://github.com/novnc/noVNC/archive/refs/heads/master.zip
+    unzip -q /noVNC.zip -d /
+    mv /noVNC-master /noVNC
+    rm -f /noVNC.zip
+fi
 
 cleanup() {
     rm -f /tmp/.X99-lock
@@ -32,7 +40,7 @@ X11VNC_PID=$!
 sleep 1
 
 echo "Starting noVNC proxy on port 6081..."
-/mt5linux/noVNC-master/utils/novnc_proxy --vnc localhost:5900 --listen 6081 &
+/noVNC/utils/novnc_proxy --vnc localhost:5900 --listen 6081 &
 NOVNC_PID=$!
 
 sleep 1
