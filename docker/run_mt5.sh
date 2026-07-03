@@ -37,9 +37,8 @@ sleep 1
 echo "Starting MetaTrader 5..."
 cd /app
 
-# Skip winetricks for now - can add later if needed
-# echo "Installing Windows dependencies (Common Controls)..."
-# winetricks --unattended comctl32
+# Disable mono/.NET DLL loading to bypass the wine-mono prompt
+export WINEDLLOVERRIDES="mscoree="
 
 if [ ! -f "terminal64.exe" ]; then
     echo "MetaTrader 5 not found. Downloading..."
