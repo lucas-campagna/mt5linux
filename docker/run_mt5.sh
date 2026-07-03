@@ -29,7 +29,7 @@ X11VNC_PID=$!
 sleep 1
 
 echo "Starting noVNC proxy on port 8080..."
-/opt/noVNC/utils/novnc_proxy --vnc localhost:5900 --listen 8080 &
+websockify --web=/opt/noVNC 8080 localhost:5900 &
 NOVNC_PID=$!
 
 sleep 1
@@ -37,9 +37,9 @@ sleep 1
 echo "Starting MetaTrader 5..."
 cd /app
 
-# Install Windows dependencies
-echo "Installing Windows dependencies (Common Controls)..."
-winetricks --unattended comctl32
+# Skip winetricks for now - can add later if needed
+# echo "Installing Windows dependencies (Common Controls)..."
+# winetricks --unattended comctl32
 
 if [ ! -f "terminal64.exe" ]; then
     echo "MetaTrader 5 not found. Downloading..."
