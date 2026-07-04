@@ -61,8 +61,8 @@ COPY --from=builder /opt/noVNC /opt/noVNC
 # Copy wineprefix with pre-installed MT5
 COPY --from=builder /opt/wineprefix /opt/wineprefix
 
-# Copy /app symlink from builder
-COPY --from=builder /app /app
+# Recreate /app symlink in final stage
+RUN ln -s /opt/wineprefix/drive_c/Program\ Files/MetaTrader\ 5 /app
 
 # Copy startup script
 COPY run_mt5.sh /run_mt5.sh
