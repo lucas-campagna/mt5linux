@@ -196,8 +196,8 @@ if [ ! -f "terminal64.exe" ]; then
   rm -f mt5setup.exe
 fi
 
-# Start MT5
-wine64 /app/terminal64.exe &
+# Start MT5 (portable mode)
+wine64 /app/terminal64.exe --portable &
 MT5_PID=$!
 
 echo ""
