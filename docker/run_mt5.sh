@@ -1,9 +1,6 @@
 #!/bin/sh
 set -e
 
-export DISPLAY=:0
-export WINEPREFIX=/opt/wineprefix
-
 cleanup() {
   rm -f /tmp/.X0-lock
   rm -f /tmp/.X99-lock
@@ -35,7 +32,6 @@ NOVNC_PID=$!
 sleep 1
 
 echo "Extracting MetaTrader 5..."
-cd /app
 tar -xzf mt5.tar.gz
 rm -f mt5.tar.gz
 

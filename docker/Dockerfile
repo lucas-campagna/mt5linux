@@ -13,9 +13,6 @@ RUN apk add --no-cache \
     cabextract \
     curl
 
-# Install websockify via pip
-RUN pip3 install --no-cache-dir --break-system-packages websockify
-
 # Clone noVNC and remove git history
 RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC && \
     rm -rf /opt/noVNC/.git
@@ -28,15 +25,15 @@ RUN apk add --no-cache \
     wine \
     xvfb \
     x11vnc \
-    python3 \
     curl \
     tar
 
-# Copy websockify and noVNC from builder
-COPY --from=builder /usr/bin/websockify /usr/bin/
-COPY --from=builder /usr/lib/python3.12/site-packages/websockify /usr/lib/python3.12/site-packages/websockify
-COPY --from=builder /usr/lib/python3.12/site-packages/websockify-0.13.0.dist-info /usr/lib/python3.12/site-packages/websockify-0.13.0.dist-info
+# Copy noVNC from builder
 COPY --from=builder /opt/noVNC /opt/noVNC
+
+# Copy Go websockify binary (static, 7.6MB vs Python's ~50MB)
+COPY websockify /usr/bin/websockify
+RUN chmod +x /usr/bin/websockify
 
 # Copy MT5 tarball to /app
 COPY mt5.tar.gz /app/
@@ -52,6 +49,8 @@ ENV DISPLAY=:0
 ENV WINEPREFIX=/opt/wineprefix
 ENV VNC_PORT=5900
 ENV NOVNC_PORT=8080
+ENV WINEPREFIX=/opt/wineprefix
+WORKDIR /app
 
 EXPOSE 8080
 
