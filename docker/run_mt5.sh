@@ -40,6 +40,9 @@ cd /app
 # Disable mono/.NET DLL loading to bypass the wine-mono prompt
 export WINEDLLOVERRIDES="mscoree="
 
+# Delete existing profiles to start fresh
+rm -rf /app/Profiles/Default/*
+
 # Create minimal common.ini (UTF-16)
 cat << 'EOF' | iconv -f UTF-8 -t UTF-16LE > /app/Config/common.ini
 [Common]
