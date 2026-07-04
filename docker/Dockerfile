@@ -29,13 +29,17 @@ RUN apk add --no-cache \
     xvfb \
     x11vnc \
     python3 \
-    curl
+    curl \
+    tar
 
 # Copy websockify and noVNC from builder
 COPY --from=builder /usr/bin/websockify /usr/bin/
 COPY --from=builder /usr/lib/python3.12/site-packages/websockify /usr/lib/python3.12/site-packages/websockify
 COPY --from=builder /usr/lib/python3.12/site-packages/websockify-0.13.0.dist-info /usr/lib/python3.12/site-packages/websockify-0.13.0.dist-info
 COPY --from=builder /opt/noVNC /opt/noVNC
+
+# Copy MT5 tarball to /app
+COPY mt5.tar.gz /app/
 
 # Create wineprefix directory
 RUN mkdir -p /opt/wineprefix

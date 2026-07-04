@@ -34,17 +34,13 @@ NOVNC_PID=$!
 
 sleep 1
 
+echo "Extracting MetaTrader 5..."
+cd /app
+tar -xzf mt5.tar.gz
+rm -f mt5.tar.gz
+
 # Disable mono/.NET DLL loading to bypass the wine-mono prompt
 export WINEDLLOVERRIDES="mscoree="
-
-# Install MT5 if not present
-if [ ! -f "/app/terminal64.exe" ]; then
-    echo "MetaTrader 5 not found. Installing..."
-    cd /app
-    curl -L -o mt5setup.exe https://download.mql5.com/cdn/web/metaquotes.ltd/mt5/mt5setup.exe
-    wine64 mt5setup.exe /S
-    rm -f mt5setup.exe
-fi
 
 # Delete existing profiles to start fresh
 rm -rf /app/Profiles/Default/*

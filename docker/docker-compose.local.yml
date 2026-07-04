@@ -8,8 +8,6 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
-    volumes:
-      - /tmp/mt5:/app
     environment:
       - LOGIN=${MT5_LOGIN:-}
       - PASSWORD=${MT5_PASSWORD:-}
