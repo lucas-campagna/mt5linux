@@ -40,6 +40,107 @@ cd /app
 # Disable mono/.NET DLL loading to bypass the wine-mono prompt
 export WINEDLLOVERRIDES="mscoree="
 
+# Create minimal common.ini (UTF-16)
+cat << 'EOF' | iconv -f UTF-8 -t UTF-16LE > /app/Config/common.ini
+[Common]
+NewsEnable=0
+SoundEnable=0
+MailEnable=0
+ProxyEnable=0
+SavePassword=0
+
+[Charts]
+MaxBars=1000000
+
+[Experts]
+Enabled=0
+
+[News]
+Enabled=0
+AutoUpdate=0
+
+[Events]
+Enable=0
+NewsEnable=0
+
+[MarketWatch]
+Enabled=0
+
+[Signal]
+Enabled=0
+AutoUpdate=0
+
+[Toolbox]
+Visible=0
+
+[NewsWindow]
+Visible=0
+
+[MarketWatchWindow]
+Visible=0
+
+[Navigator]
+Visible=0
+
+[TreeBox]
+Visible=0
+EOF
+
+# Create minimal terminal.ini (UTF-16) - hide all windows
+cat << 'EOF' | iconv -f UTF-8 -t UTF-16LE > /app/Config/terminal.ini
+[Window]
+Fullscreen=0
+Type=3
+Left=0
+Top=0
+Right=1920
+Bottom=1080
+LSave=0
+TSave=0
+RSave=1920
+BSave=1080
+
+[Toolbars]
+Arrange=1
+
+[Settings]
+ToolboxTab=0
+NavigatorTab=0
+MarketWatchTab=0
+TesterTab=-1
+XPos=-2
+ProfileLast=Default
+
+[ChartsBarState]
+Visible=0
+
+[BarState-Summary]
+Version=508
+Bars=12
+Visible=0
+
+[Navigator]
+Visible=0
+
+[Toolbox]
+Visible=0
+
+[MarketWatchWindow]
+Visible=0
+
+[NewsWindow]
+Visible=0
+
+[BarState_Bar13]
+Visible=0
+
+[BarState_Bar14]
+Visible=0
+
+[BarState_Bar15]
+Visible=0
+EOF
+
 if [ ! -f "terminal64.exe" ]; then
     echo "MetaTrader 5 not found. Downloading..."
     curl -L -o mt5setup.exe https://download.mql5.com/cdn/web/metaquotes.ltd/mt5/mt5setup.exe
@@ -48,32 +149,9 @@ if [ ! -f "terminal64.exe" ]; then
     rm -f mt5setup.exe
 fi
 
-# Start MT5 without config parameter
+# Start MT5
 wine64 /app/terminal64.exe &
 MT5_PID=$!
-
-# Wait for MT5 to load, then close unwanted windows
-sleep 10
-
-close_mt5_windows() {
-    echo "Closing unwanted MT5 windows..."
-    # Close Navigator window
-    xdotool search --name "Navigator" windowclose 2>/dev/null || true
-    # Close Toolbox window  
-    xdotool search --name "Toolbox" windowclose 2>/dev/null || true
-    xdotool search --name "Toolbox" windowclose 2>/dev/null || true
-    # Close Market Watch
-    xdotool search --name "Market Watch" windowclose 2>/dev/null || true
-    # Close chart windows (they have "Chart" in title but also symbol names)
-    for win in $(xdotool search --name "Chart"); do
-        xdotool windowclose $win 2>/dev/null || true
-    done
-    # Press Escape to close any dialogs
-    xdotool key Escape 2>/dev/null || true
-    echo "Done cleaning up windows"
-}
-
-close_mt5_windows &
 
 echo ""
 echo "All services started:"
