@@ -188,14 +188,6 @@ EOFTERMINAL
 # Apply envvar config overrides
 apply_mt5_config
 
-if [ ! -f "terminal64.exe" ]; then
-  echo "MetaTrader 5 not found. Downloading..."
-  curl -L -o mt5setup.exe https://download.mql5.com/cdn/web/metaquotes.ltd/mt5/mt5setup.exe
-  echo "Installing MetaTrader 5..."
-  wine64 mt5setup.exe
-  rm -f mt5setup.exe
-fi
-
 # Start MT5 (portable mode)
 wine64 /app/terminal64.exe /portable &
 MT5_PID=$!
