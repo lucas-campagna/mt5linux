@@ -9,3 +9,7 @@ services:
       - "8080:8080"
     volumes:
       - /tmp/mt5:/app
+    environment:
+      - MT5_LOGIN=${MT5_LOGIN:-}
+      - MT5_PASSWORD=${MT5_PASSWORD:-}
+      - MT5_SERVER=${MT5_SERVER:-}

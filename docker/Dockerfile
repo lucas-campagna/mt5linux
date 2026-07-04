@@ -36,7 +36,8 @@ RUN apk add --no-cache \
     xdotool \
     python3 \
     gnutls \
-    cabextract
+    cabextract \
+    curl
 
 # Copy websockify and noVNC from builder
 COPY --from=builder /usr/bin/websockify /usr/bin/

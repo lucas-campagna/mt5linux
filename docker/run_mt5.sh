@@ -5,8 +5,8 @@ export DISPLAY=:0
 export WINEPREFIX=/opt/wineprefix
 
 cleanup() {
-    rm -f /tmp/.X0-lock
-    rm -f /tmp/.X99-lock
+  rm -f /tmp/.X0-lock
+  rm -f /tmp/.X99-lock
 }
 cleanup
 
@@ -17,8 +17,8 @@ XVFB_PID=$!
 sleep 1
 
 if ! kill -0 $XVFB_PID 2>/dev/null; then
-    echo "ERROR: Xvfb failed to start"
-    exit 1
+  echo "ERROR: Xvfb failed to start"
+  exit 1
 fi
 echo "Xvfb started (PID: $XVFB_PID)"
 
@@ -43,8 +43,16 @@ export WINEDLLOVERRIDES="mscoree="
 # Delete existing profiles to start fresh
 rm -rf /app/Profiles/Default/*
 
-# Create minimal common.ini (UTF-16)
-cat << 'EOF' | iconv -f UTF-8 -t UTF-16LE > /app/Config/common.ini
+# Function to apply envvar overrides to config files
+apply_mt5_config() {
+  local common_ini="/app/Config/common.ini"
+  local terminal_ini="/app/Config/terminal.ini"
+  
+  # Ensure Config directory exists
+  mkdir -p /app/Config
+  
+  # Create common.ini in UTF-8 first
+  cat > /tmp/common_ini.txt <<'EOFCOMMON'
 [Common]
 NewsEnable=0
 SoundEnable=0
@@ -87,10 +95,10 @@ Visible=0
 
 [TreeBox]
 Visible=0
-EOF
+EOFCOMMON
 
-# Create minimal terminal.ini (UTF-16) - hide all windows
-cat << 'EOF' | iconv -f UTF-8 -t UTF-16LE > /app/Config/terminal.ini
+  # Create terminal.ini in UTF-8 first
+  cat > /tmp/terminal_ini.txt <<'EOFTERMINAL'
 [Window]
 Fullscreen=0
 Type=3
@@ -112,7 +120,7 @@ NavigatorTab=0
 MarketWatchTab=0
 TesterTab=-1
 XPos=-2
-ProfileLast=Default
+ProfileLast=Blank
 
 [ChartsBarState]
 Visible=0
@@ -142,14 +150,45 @@ Visible=0
 
 [BarState_Bar15]
 Visible=0
-EOF
+EOFTERMINAL
+
+  # Apply MT5_LOGIN if set
+  if [ -n "$MT5_LOGIN" ]; then
+    echo "Setting MT5_LOGIN=$MT5_LOGIN"
+    echo "Account=$MT5_LOGIN" >> /tmp/terminal_ini.txt
+  fi
+
+  # Apply MT5_SERVER if set
+  if [ -n "$MT5_SERVER" ]; then
+    echo "Setting MT5_SERVER=$MT5_SERVER"
+    echo "Server=$MT5_SERVER" >> /tmp/terminal_ini.txt
+  fi
+
+  # Apply MT5_PASSWORD if set (saved securely)
+  if [ -n "$MT5_PASSWORD" ]; then
+    echo "Setting MT5_PASSWORD (saved)"
+    echo "Password=$MT5_PASSWORD" >> /tmp/terminal_ini.txt
+  fi
+
+  # Convert to UTF-16LE and write to final location
+  iconv -f UTF-8 -t UTF-16LE /tmp/common_ini.txt > "$common_ini"
+  iconv -f UTF-8 -t UTF-16LE /tmp/terminal_ini.txt > "$terminal_ini"
+  
+  # Clean up temp files
+  rm -f /tmp/common_ini.txt /tmp/terminal_ini.txt
+  
+  echo "MT5 config applied"
+}
+
+# Apply envvar config overrides
+apply_mt5_config
 
 if [ ! -f "terminal64.exe" ]; then
-    echo "MetaTrader 5 not found. Downloading..."
-    curl -L -o mt5setup.exe https://download.mql5.com/cdn/web/metaquotes.ltd/mt5/mt5setup.exe
-    echo "Installing MetaTrader 5..."
-    wine64 mt5setup.exe
-    rm -f mt5setup.exe
+  echo "MetaTrader 5 not found. Downloading..."
+  curl -L -o mt5setup.exe https://download.mql5.com/cdn/web/metaquotes.ltd/mt5/mt5setup.exe
+  echo "Installing MetaTrader 5..."
+  wine64 mt5setup.exe
+  rm -f mt5setup.exe
 fi
 
 # Start MT5
@@ -164,6 +203,11 @@ echo "  - noVNC :8080 (PID: $NOVNC_PID)"
 echo "  - MT5 (PID: $MT5_PID)"
 echo ""
 echo "Access MT5 at: http://localhost:8080/vnc.html"
+echo ""
+echo "MT5 Configuration:"
+echo "  - MT5_LOGIN: ${MT5_LOGIN:-not set}"
+echo "  - MT5_SERVER: ${MT5_SERVER:-not set}"
+echo "  - MT5_PASSWORD: ${MT5_PASSWORD:+<set>}"
 
 trap cleanup EXIT
 
