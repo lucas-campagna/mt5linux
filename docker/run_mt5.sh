@@ -43,10 +43,10 @@ export WINEDLLOVERRIDES="mscoree="
 # Delete existing profiles to start fresh
 rm -rf /app/Profiles/Default/*
 
-# Map external MT5_ prefixed vars to internal vars
-LOGIN="${MT5_LOGIN}"
-PASSWORD="${MT5_PASSWORD}"
-SERVER="${MT5_SERVER}"
+# Map external env vars to internal vars
+LOGIN="${LOGIN}"
+PASSWORD="${PASSWORD}"
+SERVER="${SERVER}"
 
 # Function to apply envvar overrides to config files
 apply_mt5_config() {

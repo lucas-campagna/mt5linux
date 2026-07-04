@@ -10,6 +10,6 @@ services:
     volumes:
       - /tmp/mt5:/app
     environment:
-      - MT5_LOGIN=${MT5_LOGIN:-}
-      - MT5_PASSWORD=${MT5_PASSWORD:-}
-      - MT5_SERVER=${MT5_SERVER:-}
+      - LOGIN=${MT5_LOGIN:-}
+      - PASSWORD=${MT5_PASSWORD:-}
+      - SERVER=${MT5_SERVER:-}
