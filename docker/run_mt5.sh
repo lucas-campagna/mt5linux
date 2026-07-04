@@ -43,6 +43,11 @@ export WINEDLLOVERRIDES="mscoree="
 # Delete existing profiles to start fresh
 rm -rf /app/Profiles/Default/*
 
+# Map external MT5_ prefixed vars to internal vars
+LOGIN="${MT5_LOGIN}"
+PASSWORD="${MT5_PASSWORD}"
+SERVER="${MT5_SERVER}"
+
 # Function to apply envvar overrides to config files
 apply_mt5_config() {
   local common_ini="/app/Config/common.ini"
@@ -152,22 +157,22 @@ Visible=0
 Visible=0
 EOFTERMINAL
 
-  # Apply MT5_LOGIN if set
-  if [ -n "$MT5_LOGIN" ]; then
-    echo "Setting MT5_LOGIN=$MT5_LOGIN"
-    echo "Account=$MT5_LOGIN" >> /tmp/terminal_ini.txt
+  # Apply LOGIN if set
+  if [ -n "$LOGIN" ]; then
+    echo "Setting LOGIN=$LOGIN"
+    echo "Account=$LOGIN" >> /tmp/terminal_ini.txt
   fi
 
-  # Apply MT5_SERVER if set
-  if [ -n "$MT5_SERVER" ]; then
-    echo "Setting MT5_SERVER=$MT5_SERVER"
-    echo "Server=$MT5_SERVER" >> /tmp/terminal_ini.txt
+  # Apply SERVER if set
+  if [ -n "$SERVER" ]; then
+    echo "Setting SERVER=$SERVER"
+    echo "Server=$SERVER" >> /tmp/terminal_ini.txt
   fi
 
-  # Apply MT5_PASSWORD if set (saved securely)
-  if [ -n "$MT5_PASSWORD" ]; then
-    echo "Setting MT5_PASSWORD (saved)"
-    echo "Password=$MT5_PASSWORD" >> /tmp/terminal_ini.txt
+  # Apply PASSWORD if set (saved securely)
+  if [ -n "$PASSWORD" ]; then
+    echo "Setting PASSWORD (saved)"
+    echo "Password=$PASSWORD" >> /tmp/terminal_ini.txt
   fi
 
   # Convert to UTF-16LE and write to final location
@@ -205,9 +210,9 @@ echo ""
 echo "Access MT5 at: http://localhost:8080/vnc.html"
 echo ""
 echo "MT5 Configuration:"
-echo "  - MT5_LOGIN: ${MT5_LOGIN:-not set}"
-echo "  - MT5_SERVER: ${MT5_SERVER:-not set}"
-echo "  - MT5_PASSWORD: ${MT5_PASSWORD:+<set>}"
+echo "  - LOGIN: ${LOGIN:-not set}"
+echo "  - SERVER: ${SERVER:-not set}"
+echo "  - PASSWORD: ${PASSWORD:+<set>}"
 
 trap cleanup EXIT
 
