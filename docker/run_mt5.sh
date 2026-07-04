@@ -19,14 +19,14 @@ if ! kill -0 $XVFB_PID 2>/dev/null; then
 fi
 echo "Xvfb started (PID: $XVFB_PID)"
 
-echo "Starting x11vnc on port 5900..."
-x11vnc -display :0 -forever -rfbport 5900 -nopw &
+echo "Starting x11vnc on port $VNC_PORT..."
+x11vnc -display :0 -forever -rfbport $VNC_PORT -nopw &
 X11VNC_PID=$!
 
 sleep 1
 
-echo "Starting noVNC proxy on port 8080..."
-websockify --web=/opt/noVNC 8080 localhost:5900 &
+echo "Starting noVNC proxy on port $NOVNC_PORT..."
+websockify --web=/opt/noVNC $NOVNC_PORT localhost:$VNC_PORT &
 NOVNC_PID=$!
 
 sleep 1
@@ -40,11 +40,6 @@ export WINEDLLOVERRIDES="mscoree="
 
 # Delete existing profiles to start fresh
 rm -rf /app/Profiles/Default/*
-
-# Map external env vars to internal vars
-LOGIN="${LOGIN}"
-PASSWORD="${PASSWORD}"
-SERVER="${SERVER}"
 
 # Function to apply envvar overrides to config files
 apply_mt5_config() {
@@ -193,11 +188,11 @@ MT5_PID=$!
 echo ""
 echo "All services started:"
 echo "  - Xvfb :0 (PID: $XVFB_PID)"
-echo "  - x11vnc :5900 (PID: $X11VNC_PID)"
-echo "  - noVNC :8080 (PID: $NOVNC_PID)"
+echo "  - x11vnc :$VNC_PORT (PID: $X11VNC_PID)"
+echo "  - noVNC :$NOVNC_PORT (PID: $NOVNC_PID)"
 echo "  - MT5 (PID: $MT5_PID)"
 echo ""
-echo "Access MT5 at: http://localhost:8080/vnc.html"
+echo "Access MT5 at: http://localhost:$NOVNC_PORT/vnc.html"
 echo ""
 echo "MT5 Configuration:"
 echo "  - LOGIN: ${LOGIN:-not set}"
