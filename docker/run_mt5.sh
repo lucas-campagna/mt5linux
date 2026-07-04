@@ -52,12 +52,12 @@ SERVER="${SERVER}"
 apply_mt5_config() {
   local common_ini="/app/Config/common.ini"
   local terminal_ini="/app/Config/terminal.ini"
-  
+
   # Ensure Config directory exists
   mkdir -p /app/Config
-  
+
   # Create common.ini in UTF-8 first
-  cat > /tmp/common_ini.txt <<'EOFCOMMON'
+  cat >/tmp/common_ini.txt <<'EOFCOMMON'
 [Common]
 NewsEnable=0
 SoundEnable=0
@@ -103,7 +103,7 @@ Visible=0
 EOFCOMMON
 
   # Create terminal.ini in UTF-8 first
-  cat > /tmp/terminal_ini.txt <<'EOFTERMINAL'
+  cat >/tmp/terminal_ini.txt <<'EOFTERMINAL'
 [Window]
 Fullscreen=0
 Type=3
@@ -160,28 +160,28 @@ EOFTERMINAL
   # Apply LOGIN if set
   if [ -n "$LOGIN" ]; then
     echo "Setting LOGIN=$LOGIN"
-    echo "Account=$LOGIN" >> /tmp/terminal_ini.txt
+    echo "Account=$LOGIN" >>/tmp/terminal_ini.txt
   fi
 
   # Apply SERVER if set
   if [ -n "$SERVER" ]; then
     echo "Setting SERVER=$SERVER"
-    echo "Server=$SERVER" >> /tmp/terminal_ini.txt
+    echo "Server=$SERVER" >>/tmp/terminal_ini.txt
   fi
 
   # Apply PASSWORD if set (saved securely)
   if [ -n "$PASSWORD" ]; then
     echo "Setting PASSWORD (saved)"
-    echo "Password=$PASSWORD" >> /tmp/terminal_ini.txt
+    echo "Password=$PASSWORD" >>/tmp/terminal_ini.txt
   fi
 
   # Convert to UTF-16LE and write to final location
-  iconv -f UTF-8 -t UTF-16LE /tmp/common_ini.txt > "$common_ini"
-  iconv -f UTF-8 -t UTF-16LE /tmp/terminal_ini.txt > "$terminal_ini"
-  
+  iconv -f UTF-8 -t UTF-16LE /tmp/common_ini.txt >"$common_ini"
+  iconv -f UTF-8 -t UTF-16LE /tmp/terminal_ini.txt >"$terminal_ini"
+
   # Clean up temp files
   rm -f /tmp/common_ini.txt /tmp/terminal_ini.txt
-  
+
   echo "MT5 config applied"
 }
 
@@ -197,7 +197,7 @@ if [ ! -f "terminal64.exe" ]; then
 fi
 
 # Start MT5 (portable mode)
-wine64 /app/terminal64.exe --portable &
+wine64 /app/terminal64.exe /portable &
 MT5_PID=$!
 
 echo ""
