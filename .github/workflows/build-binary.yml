@@ -18,13 +18,18 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install Visual C++ Redistributable
+        run: |
+          curl -L -o vc_redist.x64.exe https://aka.ms/vs/17/release/vc_redist.x64.exe
+          ./vc_redist.x64.exe /install /quiet /norestart
+
       - name: Install dependencies
         run: |
           pip install pyinstaller rpyc numpy plumbum pyparsing
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --name mt5server --onefile mt5linux/__main__.py
+          pyinstaller --name mt5server --onefile --additional-hooks-dir=. mt5linux/__main__.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
