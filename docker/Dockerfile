@@ -9,6 +9,9 @@ RUN apk add --no-cache git && \
 # Stage 2: Runtime stage - minimal image with only runtime dependencies
 FROM alpine:3.20
 
+# Build argument for MT5 variant (full or terminal)
+ARG MT5_VARIANT=full
+
 # Install only runtime dependencies
 RUN apk add --no-cache \
     wine \
@@ -27,8 +30,8 @@ COPY --from=builder /opt/noVNC /opt/noVNC
 COPY websockify /usr/bin/websockify
 RUN chmod +x /usr/bin/websockify
 
-# Copy MT5 tarball to /app
-COPY mt5.tar.gz /app/
+# Copy MT5 tarball based on variant (always as mt5.tar.gz)
+COPY mt5-${MT5_VARIANT}.tar.gz /app/mt5.tar.gz
 
 # Create wineprefix directory
 RUN mkdir -p /opt/wineprefix
