@@ -3,8 +3,6 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-      args:
-        MT5SERVER_VERSION: build-test
     image: lprett/mt5linux:local
     container_name: mt5linux
     restart: unless-stopped

@@ -38,6 +38,11 @@ rm -f mt5.tar.gz
 # Disable mono/.NET DLL loading to bypass the wine-mono prompt
 export WINEDLLOVERRIDES="mscoree="
 
+# Initialize Wine properly
+echo "Initializing Wine..."
+WINEDLLOVERRIDES="mscoree=" WINEPREFIX=/opt/wineprefix wineboot -init 2>/dev/null || true
+sleep 2
+
 # Delete existing profiles to start fresh
 rm -rf /app/Profiles/Default/*
 
