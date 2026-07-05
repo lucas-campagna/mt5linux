@@ -17,6 +17,9 @@ RUN apk add --no-cache \
     curl \
     tar
 
+# Remove 32-bit wine libraries (save ~172MB)
+RUN rm -rf /usr/lib/wine/i386-windows
+
 # Copy noVNC from builder
 COPY --from=builder /opt/noVNC /opt/noVNC
 
