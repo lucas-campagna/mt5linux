@@ -191,14 +191,8 @@ sleep 5
 # Function to start the RPyC server
 start_rpyc_server() {
     echo "Starting RPyC server on ${MT5_HOST}:${RPYC_PORT}..."
-    if [ -f /app/mt5server.exe ]; then
-        echo "Using pre-built binary..."
-        WINEDLLOVERRIDES="mscoree=" WINEPREFIX=/opt/wineprefix wine /app/mt5server.exe &
-        RPYC_PID=$!
-    else
-        echo "ERROR: mt5server.exe not found at /app/mt5server.exe"
-        return 1
-    fi
+    WINEDLLOVERRIDES="mscoree=" WINEPREFIX=/opt/wineprefix wine C:\\Python311\\python.exe -m mt5linux &
+    RPYC_PID=$!
     echo "RPyC server started (PID: $RPYC_PID)"
 }
 
