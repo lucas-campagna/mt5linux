@@ -185,6 +185,16 @@ apply_mt5_config
 wine64 /app/terminal64.exe /portable &
 MT5_PID=$!
 
+# Wait for MT5 to initialize, then kill unnecessary Wine processes
+sleep 3
+for proc in explorer.exe winedevice.exe svchost.exe plugplay.exe; do
+    pid=$(pgrep -f "$proc" 2>/dev/null | head -1)
+    if [ -n "$pid" ]; then
+        echo "Killing unnecessary process: $proc (PID: $pid)"
+        kill $pid 2>/dev/null || true
+    fi
+done
+
 echo ""
 echo "All services started:"
 echo "  - Xvfb :0 (PID: $XVFB_PID)"
