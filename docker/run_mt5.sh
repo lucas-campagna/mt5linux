@@ -185,6 +185,41 @@ apply_mt5_config
 wine64 /app/terminal64.exe /portable &
 MT5_PID=$!
 
+# Wait for MT5 to initialize
+sleep 5
+
+# Function to start the RPyC server
+start_rpyc_server() {
+    echo "Starting RPyC server on ${MT5_HOST}:${RPYC_PORT}..."
+    if [ -f /app/mt5server.exe ]; then
+        echo "Using pre-built binary..."
+        WINEDLLOVERRIDES="mscoree=" WINEPREFIX=/opt/wineprefix wine /app/mt5server.exe &
+        RPYC_PID=$!
+    else
+        echo "ERROR: mt5server.exe not found at /app/mt5server.exe"
+        return 1
+    fi
+    echo "RPyC server started (PID: $RPYC_PID)"
+}
+
+# Start the RPyC server
+start_rpyc_server
+
+# Watchdog loop for RPyC server
+watchdog_rpyc() {
+    while true; do
+        sleep 10
+        if ! kill -0 $RPYC_PID 2>/dev/null; then
+            echo "RPyC server crashed (PID: $RPYC_PID). Restarting..."
+            start_rpyc_server
+        fi
+    done
+}
+
+# Start watchdog in background
+watchdog_rpyc &
+WATCHDOG_PID=$!
+
 # Wait for MT5 to initialize, then kill unnecessary Wine processes
 sleep 3
 for proc in explorer.exe winedevice.exe svchost.exe plugplay.exe; do
@@ -201,6 +236,8 @@ echo "  - Xvfb :0 (PID: $XVFB_PID)"
 echo "  - x11vnc :$VNC_PORT (PID: $X11VNC_PID)"
 echo "  - noVNC :$NOVNC_PORT (PID: $NOVNC_PID)"
 echo "  - MT5 (PID: $MT5_PID)"
+echo "  - RPyC server on ${MT5_HOST}:${RPYC_PORT} (PID: $RPYC_PID)"
+echo "  - Watchdog (PID: $WATCHDOG_PID)"
 echo ""
 echo "Access MT5 at: http://localhost:$NOVNC_PORT/vnc.html"
 echo ""
@@ -208,6 +245,16 @@ echo "MT5 Configuration:"
 echo "  - LOGIN: ${LOGIN:-not set}"
 echo "  - SERVER: ${SERVER:-not set}"
 echo "  - PASSWORD: ${PASSWORD:+<set>}"
+echo ""
+echo "Connect from Linux Python:"
+echo "  mt5 = MetaTrader5(host='<container-ip>', port=$RPYC_PORT)"
+
+cleanup() {
+    echo "Cleaning up..."
+    kill $WATCHDOG_PID 2>/dev/null || true
+    rm -f /tmp/.X0-lock
+    rm -f /tmp/.X99-lock
+}
 
 trap cleanup EXIT
 

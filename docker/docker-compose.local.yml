@@ -1,14 +1,19 @@
 services:
   mt5linux:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        MT5SERVER_VERSION: build-test
     image: lprett/mt5linux:local
     container_name: mt5linux
     restart: unless-stopped
     ports:
       - "8080:8080"
+      - "18812:18812"
     environment:
       - LOGIN=${MT5_LOGIN:-}
       - PASSWORD=${MT5_PASSWORD:-}
       - SERVER=${MT5_SERVER:-}
+      - MT5_HOST=0.0.0.0
+      - RPYC_PORT=18812

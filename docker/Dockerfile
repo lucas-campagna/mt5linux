@@ -1,15 +1,11 @@
-# Stage 1: Build stage - only need git to clone noVNC
+# Builder stage - Clone noVNC
 FROM alpine:3.20 AS builder
+RUN apk add --no-cache git
+RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC && rm -rf /opt/noVNC/.git
 
-# Clone noVNC (only thing needed from builder)
-RUN apk add --no-cache git && \
-    git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC && \
-    rm -rf /opt/noVNC/.git
-
-# Stage 2: Runtime stage - minimal image with only runtime dependencies
+# Runtime stage - Minimal Alpine image with Wine + pre-built mt5server binary
 FROM alpine:3.20
 
-# Install only runtime dependencies
 RUN apk add --no-cache \
     wine \
     xvfb \
@@ -17,32 +13,31 @@ RUN apk add --no-cache \
     curl \
     tar
 
-# Remove 32-bit wine libraries (save ~172MB)
 RUN rm -rf /usr/lib/wine/i386-windows
 
-# Copy noVNC from builder
 COPY --from=builder /opt/noVNC /opt/noVNC
 
-# Copy Go websockify binary
-COPY websockify /usr/bin/websockify
+COPY docker/websockify /usr/bin/websockify
 RUN chmod +x /usr/bin/websockify
 
-# Copy MT5 tarball to /app
-COPY mt5.tar.gz /app/
-
-# Create wineprefix directory
-RUN mkdir -p /opt/wineprefix
-
-# Copy startup script
-COPY run_mt5.sh /run_mt5.sh
+COPY docker/mt5.tar.gz /app/
+COPY docker/run_mt5.sh /run_mt5.sh
 RUN chmod +x /run_mt5.sh
+
+# Download pre-built mt5server binary from GitHub Releases
+ARG MT5SERVER_VERSION=build-test
+RUN curl -L -o /app/mt5server.exe "https://github.com/lucas-campagna/mt5linux/releases/download/${MT5SERVER_VERSION}/mt5server.exe"
+
+RUN mkdir -p /opt/wineprefix
 
 ENV DISPLAY=:0
 ENV VNC_PORT=5900
 ENV NOVNC_PORT=8080
 ENV WINEPREFIX=/opt/wineprefix
+ENV MT5_HOST=0.0.0.0
+ENV RPYC_PORT=18812
 WORKDIR /app
 
-EXPOSE 8080
+EXPOSE 8080 18812
 
 ENTRYPOINT ["/run_mt5.sh"]

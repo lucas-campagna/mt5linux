@@ -1,11 +1,17 @@
 services:
   mt5linux:
-    image: lprett/mt5linux:latest
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: lprett/mt5linux:local
     container_name: mt5linux
     restart: unless-stopped
     ports:
       - "8080:8080"
+      - "18812:18812"
     environment:
       - LOGIN=${MT5_LOGIN:-}
       - PASSWORD=${MT5_PASSWORD:-}
       - SERVER=${MT5_SERVER:-}
+      - MT5_HOST=0.0.0.0
+      - RPYC_PORT=18812
