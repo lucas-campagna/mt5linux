@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   release:
     types: [published]
+  push:
+    tags:
+      - 'server-v*'
 
 jobs:
   build:
@@ -25,11 +28,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pyinstaller rpyc numpy plumbum pyparsing
+          pip install pyinstaller 'rpyc>=6.0.0,<7' numpy plumbum pyparsing MetaTrader5
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --name mt5server --onefile --additional-hooks-dir=. mt5linux/__main__.py
+          pyinstaller --name mt5server --onefile --additional-hooks-dir=. --hidden-import=MetaTrader5 mt5linux/__main__.py
+
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -40,7 +44,6 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
     
     steps:
       - name: Download artifact
