@@ -18,6 +18,9 @@ jobs:
   release:
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -124,5 +127,5 @@ jobs:
         run: |
           labels='${{ toJson(github.event.pull_request.labels) }}'
           if echo "$labels" | grep -q '"name":"update-server"'; then
-            gh workflow run build-server.yml
+            gh workflow run build-server.yml --field create-release=true
           fi
