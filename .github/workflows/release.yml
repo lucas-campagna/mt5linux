@@ -103,10 +103,14 @@ jobs:
 
       - name: Trigger PyPI publish
         if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh workflow run publish.yml
 
       - name: Trigger Docker publish
         if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           labels='${{ toJson(github.event.pull_request.labels) }}'
           if echo "$labels" | grep -q '"name":"update-docker-image"'; then
@@ -115,6 +119,8 @@ jobs:
 
       - name: Trigger Server build
         if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           labels='${{ toJson(github.event.pull_request.labels) }}'
           if echo "$labels" | grep -q '"name":"update-server"'; then
