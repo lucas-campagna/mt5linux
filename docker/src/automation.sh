@@ -2,15 +2,24 @@
 set -e
 
 server_search_automation() {
+  INPUT_ELEMENT="230 230"
+
+  is_open_search_server_window() {
+    for WINDOW_ID in $(xdotool search --onlyvisible --classname "terminal64.exe" 2>/dev/null); do
+      WINDOW_NAME=$(xdotool getwindowname $WINDOW_ID)
+      if [ "$WINDOW_NAME" = "" ]; then
+        return 0
+      fi
+    done
+    return 1
+  }
+
   while true; do
     if [ -p /opt/wineprefix/drive_c/server ]; then
       SERVER_NAME=$(cat /opt/wineprefix/drive_c/server)
       if [ -n "$SERVER_NAME" ]; then
         echo "Server search: typing $SERVER_NAME"
-        WINDOW_IDS=$(xdotool search --onlyvisible --name "" 2>/dev/null)
-        SERVER_SEARCH_WINDOW=$(echo "$WINDOW_IDS" | sed -n '3p')
-        if [ -n "$SERVER_SEARCH_WINDOW" ]; then
-          INPUT_ELEMENT="230 230"
+        if is_open_search_server_window >/dev/null; then
           xdotool mousemove $INPUT_ELEMENT click 1 type "$SERVER_NAME"
           xdotool key Enter
         fi
