@@ -2,6 +2,10 @@
 
 <!-- Briefly describe the changes -->
 
+## Fixes
+
+- Fixes #32
+
 ## Features
 
 - Docker image reduced to 1/5 the size of the previous image
