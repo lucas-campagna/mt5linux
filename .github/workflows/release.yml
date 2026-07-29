@@ -28,42 +28,35 @@ jobs:
           version=$(grep -oP 'version = "\K[0-9]+\.[0-9]+\.[0-9]+' pyproject.toml)
           echo "CURRENT_VERSION=$version" >> $GITHUB_ENV
 
-      - name: Determine bump type
-        id: bump
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "BUMP_TYPE=${{ inputs.bump }}" >> $GITHUB_ENV
-          else
-            labels='${{ toJson(github.event.pull_request.labels) }}'
-            if echo "$labels" | grep -q '"name":"major"'; then
-              echo "BUMP_TYPE=major" >> $GITHUB_ENV
-            elif echo "$labels" | grep -q '"name":"minor"'; then
-              echo "BUMP_TYPE=minor" >> $GITHUB_ENV
-            elif echo "$labels" | grep -q '"name":"patch"'; then
-              echo "BUMP_TYPE=patch" >> $GITHUB_ENV
-            else
-              echo "No release label found. Expected: major, minor, or patch"
-              exit 1
-            fi
-          fi
+      - name: Determine bump type - workflow_dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: echo "BUMP_TYPE=${{ inputs.bump }}" >> $GITHUB_ENV
+
+      - name: Determine bump type - major
+        if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'major')
+        run: echo "BUMP_TYPE=major" >> $GITHUB_ENV
+
+      - name: Determine bump type - minor
+        if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'minor')
+        run: echo "BUMP_TYPE=minor" >> $GITHUB_ENV
+
+      - name: Determine bump type - patch
+        if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'patch')
+        run: echo "BUMP_TYPE=patch" >> $GITHUB_ENV
 
       - name: Check for update-docker-image label
-        id: check-docker-label
-        if: github.event_name == 'pull_request'
-        run: |
-          labels='${{ toJson(github.event.pull_request.labels) }}'
-          if echo "$labels" | grep -q '"name":"update-docker-image"'; then
-            echo "NEEDS_DOCKER_TAG=true" >> $GITHUB_ENV
-          fi
+        if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'update-docker-image')
+        run: echo "NEEDS_DOCKER_TAG=true" >> $GITHUB_ENV
 
       - name: Check for update-server label
-        id: check-server-label
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'update-server')
+        run: echo "NEEDS_SERVER_TAG=true" >> $GITHUB_ENV
+
+      - name: Fail if no bump type
+        if: github.event_name == 'pull_request' && (contains(github.event.pull_request.labels.*.name, 'major') == false && contains(github.event.pull_request.labels.*.name, 'minor') == false && contains(github.event.pull_request.labels.*.name, 'patch') == false)
         run: |
-          labels='${{ toJson(github.event.pull_request.labels) }}'
-          if echo "$labels" | grep -q '"name":"update-server"'; then
-            echo "NEEDS_SERVER_TAG=true" >> $GITHUB_ENV
-          fi
+          echo "No release label found. Expected: major, minor, or patch"
+          exit 1
 
       - name: Bump version
         run: |
