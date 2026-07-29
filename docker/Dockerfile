@@ -60,8 +60,8 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 COPY --from=builder /opt.tar.gz /app
-COPY run_mt5.sh /run_mt5.sh
-RUN chmod +x /run_mt5.sh
+COPY src/ /app/src/
+RUN chmod +x /app/src/*.sh
 RUN rm -rf /usr/lib/wine/i386-windows
 
 ENV NOVNC_PORT=5901
@@ -70,4 +70,4 @@ ENV RPYC_PORT=18812
 
 EXPOSE 5901 8080 18812
 
-ENTRYPOINT ["/run_mt5.sh"]
+ENTRYPOINT ["/app/src/main.sh"]
