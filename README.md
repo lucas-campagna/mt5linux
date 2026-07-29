@@ -27,11 +27,11 @@ Alternatively, you can run this library using Docker, see the [docs](https://git
 2. Start the server:
 
    - **Linux** (with Wine):
-     ```bash
-     wine mt5server.exe
-     ```
+      ```bash
+      wine mt5server.exe [-p/--port <port>]
+      ```
 
-   The server accepts various options. View them with:
+    The default port is `18812`. The server accepts various options. View them with:
    ```bash
    wine mt5server.exe --help
    ```
