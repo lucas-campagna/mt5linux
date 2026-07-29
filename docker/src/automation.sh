@@ -45,11 +45,14 @@ server_search_automation() {
 update_manager_automation() {
   LATER_BUTTON="570 445"
   while true; do
-    UPDATE_WINDOW=$(xdotool search --onlyvisible --name "LiveUpdate" 2>/dev/null | head -n1)
-    [ -n "$UPDATE_WINDOW" ] && break
-    sleep 1
+    while true; do
+      UPDATE_WINDOW=$(xdotool search --onlyvisible --name "LiveUpdate" 2>/dev/null | head -n1)
+      [ -n "$UPDATE_WINDOW" ] && break
+      sleep 1
+    done
+    xdotool mousemove $LATER_BUTTON click 1
+    sleep 300
   done
-  xdotool mousemove $LATER_BUTTON click 1
 }
 
 login_automation() {
