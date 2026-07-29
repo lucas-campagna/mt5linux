@@ -41,8 +41,9 @@ Alternatively, you can run this library using Docker, see the [docs](https://git
    ```python
    from mt5linux import MetaTrader5
 
-   mt5 = MetaTrader5()
-   mt5.initialize()
+    mt5 = MetaTrader5()
+    mt5.initialize(server=<server_ip>, login=<login_id>, password=<password>)
+    # Or simply: mt5.initialize() to auto-search for the server
    mt5.terminal_info()
    mt5.shutdown()
    ```
