@@ -25,9 +25,20 @@ RUN curl -s "https://api.github.com/repos/lucas-campagna/mt5linux/releases/lates
     jq -r '.assets[] | select(.name | contains("mt5server")) | .browser_download_url' | \
     xargs -I {} curl -L -o /opt/wineprefix/drive_c/mt5server.exe {}
 
+# Build Go websockify from source
+RUN apk add --no-cache go git && \
+    git clone --depth 1 --branch v1.2.0 https://github.com/msquee/go-websockify /tmp/go-websockify && \
+    cd /tmp/go-websockify && \
+    CGO_ENABLED=0 go build -o /opt/websockify .
+
 # Clone noVNC
 RUN git clone --depth 1 --branch v1.7.0 https://github.com/novnc/noVNC.git /opt/noVNC && \
     rm -rf /opt/noVNC/.git
+
+# Download http-server from GitHub releases
+RUN curl -s "https://api.github.com/repos/TheWaWaR/simple-http-server/releases/latest" | \
+    jq -r '.assets[] | select((.name | contains("x86_64-unknown-linux-musl-simple")) and (.name | contains("sha") | not)) | .browser_download_url' | \
+    xargs -I {} curl -L -o /opt/noVNC/http-server {}
 
 # Runtime stage - Minimal Alpine image with Wine + MT5
 FROM alpine:3.20
@@ -36,6 +47,7 @@ RUN apk add --no-cache \
     wine \
     xvfb \
     x11vnc \
+    xdotool \
     curl \
     tar
 
