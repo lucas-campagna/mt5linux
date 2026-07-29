@@ -68,5 +68,5 @@ init_wine() {
   wineboot -init >&2 2>/dev/null || true
   sleep 2
 
-  mkfifo -m 666 /opt/wineprefix/drive_c/server 2>/dev/null || true
+  [ ! -e /opt/wineprefix/drive_c/server ] && mkfifo -m 666 /opt/wineprefix/drive_c/server
 }
