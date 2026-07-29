@@ -3,6 +3,9 @@ set -e
 
 server_search_automation() {
   INPUT_ELEMENT="230 230"
+  CANCEL_BUTTON="800 635"
+  FILE_TOP_MENU_BUTTON="21 41"
+  OPEN_AN_ACCOUNT_BUTTON_FILE_FLOAT_MENU="82 321"
 
   is_open_search_server_window() {
     for WINDOW_ID in $(xdotool search --onlyvisible --classname "terminal64.exe" 2>/dev/null); do
@@ -14,15 +17,27 @@ server_search_automation() {
     return 1
   }
 
+  search_server_window() {
+    SERVER_NAME=$1
+    [ -z "$SERVER_NAME" ] && return 1
+    if ! is_open_search_server_window >/dev/null; then
+      xdotool mousemove $FILE_TOP_MENU_BUTTON click 1
+      xdotool mousemove $OPEN_AN_ACCOUNT_BUTTON_FILE_FLOAT_MENU click 1
+      while ! is_open_search_server_window >/dev/null; do
+        sleep 0.1
+      done
+    fi
+    xdotool mousemove $INPUT_ELEMENT click 1 type "$SERVER_NAME"
+    xdotool key Enter
+    xdotool mousemove $CANCEL_BUTTON click 1
+  }
+
   while true; do
     if [ -p /opt/wineprefix/drive_c/server ]; then
       SERVER_NAME=$(cat /opt/wineprefix/drive_c/server)
       [ -z "$SERVER_NAME" ] && continue
       echo "Server search: typing $SERVER_NAME"
-      if is_open_search_server_window >/dev/null; then
-        xdotool mousemove $INPUT_ELEMENT click 1 type "$SERVER_NAME"
-        xdotool key Enter
-      fi
+      search_server_window $SERVER_NAME
     fi
   done
 }
