@@ -9,7 +9,7 @@ start_rpyc_server() {
 }
 
 start_mt5() {
-  wine64 /opt/wineprefix/drive_c/Program/terminal64.exe /portable &
+  wine64 $MT5/terminal64.exe /portable &
   MT5_PID=$!
 }
 

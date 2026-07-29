@@ -33,8 +33,8 @@ server_search_automation() {
   }
 
   while true; do
-    if [ -p /opt/wineprefix/drive_c/server ]; then
-      SERVER_NAME=$(cat /opt/wineprefix/drive_c/server)
+    if [ -p $WIN_ROOT/server ]; then
+      SERVER_NAME=$(cat $WIN_ROOT/server)
       [ -z "$SERVER_NAME" ] && continue
       echo "Server search: typing $SERVER_NAME"
       search_server_window $SERVER_NAME
@@ -71,5 +71,5 @@ init_wine() {
   wineboot -init >&2 2>/dev/null || true
   sleep 2
 
-  [ ! -e /opt/wineprefix/drive_c/server ] && mkfifo -m 666 /opt/wineprefix/drive_c/server
+  [ ! -e $WIN_ROOT/server ] && mkfifo -m 666 $WIN_ROOT/server
 }

@@ -16,7 +16,7 @@ RUN mkdir -p /tmp/mt5install && \
     Xvfb :99 -screen 0 1024x768x16 >/dev/null 2>&1 & \
     XVFB_PID=$! && \
     sleep 2 && \
-    WINEDLLOVERRIDES="mscoree=" DISPLAY=:99 WINEPREFIX=/opt/wineprefix wine /tmp/mt5install/mt5setup.exe /auto /path:"C:\\Program Files\\MT5" && \
+    WINEDLLOVERRIDES="mscoree=" DISPLAY=:99 WINEPREFIX=/opt/wineprefix wine64 /tmp/mt5install/mt5setup.exe /auto /path:"C:/MT5" && \
     sleep 5 && \
     kill $XVFB_PID 2>/dev/null || true
 
@@ -42,9 +42,9 @@ RUN curl -s "https://api.github.com/repos/TheWaWaR/simple-http-server/releases/l
 
 RUN rm -rf /opt/wineprefix/drive_c/users/root/AppData/Roaming/MetaQuotes \
        /opt/wineprefix/drive_c/ProgramData/MetaQuotes \
-       /opt/wineprefix/drive_c/Program/uninstall.exe \
-       /opt/wineprefix/drive_c/Program/Profiles/Default/* \
-       /opt/wineprefix/drive_c/Program/Bases/Default
+       /opt/wineprefix/drive_c/MT5/uninstall.exe \
+       /opt/wineprefix/drive_c/MT5/Profiles/Default/* \
+       /opt/wineprefix/drive_c/MT5/Bases/Default
 RUN tar czvf /opt.tar.gz /opt
 
 # Runtime stage - Minimal Alpine image with Wine + MT5
