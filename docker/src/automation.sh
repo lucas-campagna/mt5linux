@@ -1,0 +1,75 @@
+#!/bin/sh
+set -e
+
+server_search_automation() {
+  INPUT_ELEMENT="230 230"
+  CANCEL_BUTTON="800 635"
+  FILE_TOP_MENU_BUTTON="21 41"
+  OPEN_AN_ACCOUNT_BUTTON_FILE_FLOAT_MENU="82 321"
+
+  is_open_search_server_window() {
+    for WINDOW_ID in $(xdotool search --onlyvisible --classname "terminal64.exe" 2>/dev/null); do
+      WINDOW_NAME=$(xdotool getwindowname $WINDOW_ID)
+      if [ "$WINDOW_NAME" = "" ]; then
+        return 0
+      fi
+    done
+    return 1
+  }
+
+  search_server_window() {
+    SERVER_NAME=$1
+    [ -z "$SERVER_NAME" ] && return 1
+    if ! is_open_search_server_window >/dev/null; then
+      xdotool mousemove $FILE_TOP_MENU_BUTTON click 1
+      xdotool mousemove $OPEN_AN_ACCOUNT_BUTTON_FILE_FLOAT_MENU click 1
+      while ! is_open_search_server_window >/dev/null; do
+        sleep 0.1
+      done
+    fi
+    xdotool mousemove $INPUT_ELEMENT click 1 type "$SERVER_NAME"
+    xdotool key Enter
+    xdotool mousemove $CANCEL_BUTTON click 1
+  }
+
+  while true; do
+    if [ -p $WIN_ROOT/server ]; then
+      SERVER_NAME=$(cat $WIN_ROOT/server)
+      [ -z "$SERVER_NAME" ] && continue
+      echo "Server search: typing $SERVER_NAME"
+      search_server_window $SERVER_NAME
+    fi
+  done
+}
+
+update_manager_automation() {
+  LATER_BUTTON="570 445"
+  while true; do
+    while true; do
+      UPDATE_WINDOW=$(xdotool search --onlyvisible --name "LiveUpdate" 2>/dev/null | head -n1)
+      [ -n "$UPDATE_WINDOW" ] && break
+      sleep 1
+    done
+    xdotool mousemove $LATER_BUTTON click 1
+    sleep 300
+  done
+}
+
+login_automation() {
+  OK_BUTTON="488 449"
+  while true; do
+    LOGIN_WINDOW_ID=$(xdotool search --onlyvisible --name "Login" 2>/dev/null | head -n1)
+    [ -z "$LOGIN_WINDOW_ID" ] && sleep 1 && continue
+    LOGIN_WINDOW_CLASSNAME=$(xdotool getwindowclassname $LOGIN_WINDOW_ID)
+    [ "$LOGIN_WINDOW_CLASSNAME" != "terminal64.exe" ] && sleep 1 && continue
+    xdotool mousemove $OK_BUTTON click 1
+  done
+}
+
+init_wine() {
+  echo "Initializing Wine..."
+  wineboot -init >&2 2>/dev/null || true
+  sleep 2
+
+  [ ! -e $WIN_ROOT/server ] && mkfifo -m 666 $WIN_ROOT/server
+}

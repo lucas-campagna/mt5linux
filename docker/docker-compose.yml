@@ -1,13 +1,12 @@
 services:
   mt5linux:
-    image: lprett/mt5linux:latest
+    # build:
+    #   context: ..
+    #   dockerfile: docker/Dockerfile
+    image: lprett/mt5linux:local
     container_name: mt5linux
-    environment:
-      MT5_HOST: ${MT5_HOST:-0.0.0.0}
-      VNC_PASSWORD: ${VNC_PASSWORD:-password}
+    restart: unless-stopped
     ports:
-      - ${NVC_PORT:-6081}:6081
-      - ${MT5_PORT:-18812}:18812
-    restart: "no"
-    stdin_open: true
-    tty: true
+      - 8080:8080   # noVNC page port
+      - 5901:5901   # noVNC port
+      - 18812:18812 # mt5linux page port

@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR labels
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          labels=$(gh pr view ${{ github.event.pull_request.number }} --json labels -q '.labels[].name')
+          echo "PR_LABELS=$labels" >> $GITHUB_ENV
+
+      - name: Get current version
+        run: |
+          version=$(grep -oP 'version = "\K[0-9]+\.[0-9]+\.[0-9]+' pyproject.toml)
+          echo "CURRENT_VERSION=$version" >> $GITHUB_ENV
+
+      - name: Determine bump type
+        id: bump
+        run: |
+          if echo "$PR_LABELS" | grep -qw 'major'; then
+            echo "BUMP_TYPE=major" >> $GITHUB_ENV
+          elif echo "$PR_LABELS" | grep -qw 'minor'; then
+            echo "BUMP_TYPE=minor" >> $GITHUB_ENV
+          elif echo "$PR_LABELS" | grep -qw 'patch'; then
+            echo "BUMP_TYPE=patch" >> $GITHUB_ENV
+          else
+            echo "No release label found. Expected: major, minor, or patch"
+            exit 1
+          fi
+
+      - name: Install bump2version
+        run: pip install bump2version
+
+      - name: Bump version
+        run: |
+          bump2version --current-version ${{ env.CURRENT_VERSION }} ${{ env.BUMP_TYPE }}
+
+      - name: Get new version
+        run: |
+          version=$(grep -oP 'version = "\K[0-9]+\.[0-9]+\.[0-9]+' pyproject.toml)
+          echo "NEW_VERSION=$version" >> $GITHUB_ENV
+
+      - name: Create commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml
+          git commit -m "Release v${{ env.NEW_VERSION }}"
+
+      - name: Create tag
+        run: git tag ${{ env.NEW_VERSION }}
+
+      - name: Push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: git push --tags origin ${{ github.ref }}

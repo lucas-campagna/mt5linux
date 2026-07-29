@@ -1,2 +1,0 @@
-MetaTrader5>=5
-numpy<2

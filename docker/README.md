@@ -23,6 +23,9 @@ docker run -d \
   -p 18812:18812 \
   -e MT5_HOST=0.0.0.0 \
   -e VNC_PASSWORD=password \
+  -e MT5_LOGIN=12345678 \
+  -e MT5_PASSWORD=your_password \
+  -e MT5_SERVER=Broker-Server \
   lprett/mt5linux:latest
 ```
 
@@ -38,6 +41,9 @@ docker run -d \
   -p 18812:18812 \
   -e MT5_HOST=0.0.0.0 \
   -e VNC_PASSWORD=password \
+  -e MT5_LOGIN=12345678 \
+  -e MT5_PASSWORD=your_password \
+  -e MT5_SERVER=Broker-Server \
   mt5linux
 ```
 
@@ -50,16 +56,60 @@ docker run -d \
 
 Environment variables can be configured via `.env` file or directly in `docker-compose.yml`:
 
-| Variable       | Default    | Description                   |
-| -------------- | ---------- | ----------------------------- |
-| `MT5_HOST`     | `0.0.0.0`  | Host to bind the MT5 server   |
-| `VNC_PASSWORD` | `password` | VNC password for noVNC access |
+| Variable         | Default    | Description                                      |
+| ---------------- | ---------- | ------------------------------------------------ |
+| `MT5_HOST`       | `0.0.0.0`  | Host to bind the MT5 server                      |
+| `VNC_PASSWORD`   | `password` | VNC password for noVNC access                    |
+| `MT5_LOGIN`      | (none)     | MT5 account number for autologin                 |
+| `MT5_PASSWORD`   | (none)     | MT5 password for autologin                       |
+| `MT5_SERVER`     | (none)     | MT5 server name for autologin                    |
+
+## Autologin
+
+To automatically login to an MT5 account when the container starts, provide the account credentials:
+
+```bash
+docker run -d \
+  --name mt5linux \
+  -p 6081:6081 \
+  -p 18812:18812 \
+  -e MT5_HOST=0.0.0.0 \
+  -e VNC_PASSWORD=password \
+  -e MT5_LOGIN=12345678 \
+  -e MT5_PASSWORD=your_password \
+  -e MT5_SERVER=Broker-Server \
+  lprett/mt5linux:latest
+```
+
+Or via docker-compose with a `.env` file:
+
+```bash
+MT5_HOST=0.0.0.0
+VNC_PASSWORD=your_secure_password
+MT5_LOGIN=12345678
+MT5_PASSWORD=your_password
+MT5_SERVER=Broker-Server
+```
+
+> Note: If credentials are not provided, the MT5 terminal will start without auto-login and you can connect manually via the Python API.
+
+## Crash Recovery
+
+The container includes a watchdog process that automatically:
+- Detects if the MT5 terminal crashes
+- Dismisses any crash dialogs by pressing Enter
+- Restarts the MT5 terminal if needed
+
+This makes the container suitable for fully automated workflows without manual intervention.
 
 ## Example .env file
 
 ```bash
 MT5_HOST=0.0.0.0
 VNC_PASSWORD=your_secure_password
+MT5_LOGIN=12345678
+MT5_PASSWORD=your_password
+MT5_SERVER=Broker-Server
 ```
 
 ## Connect from Linux Python
