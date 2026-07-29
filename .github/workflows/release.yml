@@ -47,16 +47,21 @@ jobs:
             fi
           fi
 
-      - name: Install bump2version
-        run: pip install bump2version
-
       - name: Bump version
         run: |
-          echo "Current version: ${{ env.CURRENT_VERSION }}"
-          echo "Bump type: ${{ env.BUMP_TYPE }}"
-          cat pyproject.toml | grep version
-          bump2version --current-version ${{ env.CURRENT_VERSION }} ${{ env.BUMP_TYPE }}
-          cat pyproject.toml | grep version
+          case "${{ env.BUMP_TYPE }}" in
+            major)
+              new_version=$(echo ${{ env.CURRENT_VERSION }} | awk -F. '{print $1+1 ".0.0"}')
+              ;;
+            minor)
+              new_version=$(echo ${{ env.CURRENT_VERSION }} | awk -F. '{print $1 "." $2+1 ".0"}')
+              ;;
+            patch)
+              new_version=$(echo ${{ env.CURRENT_VERSION }} | awk -F. '{print $1 "." $2 "." $3+1}')
+              ;;
+          esac
+          echo "New version: $new_version"
+          sed -i "s/version = \"${{ env.CURRENT_VERSION }}\"/version = \"$new_version\"/" pyproject.toml
 
       - name: Get new version
         run: |
