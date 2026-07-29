@@ -1,6 +1,6 @@
 ## Summary
 
-<!-- Briefly describe the changes -->
+<!-- Brief description of the changes -->
 
 ## Fixes
 
@@ -12,17 +12,10 @@
 - Auto search server on initialize - no longer need to open the UI to search for the server
 - `initialize()` accepts `server`, `login`, and `password` options for Docker environments
 - Simplified README - no longer requires Python on Windows, uses standalone `mt5server.exe` binary
+- Server default port `18812` documented
 
 ## Checklist
 
 - [ ] Tests pass
-- [ ] Documentation updated (if needed)
+- [ ] Documentation updated
 - [ ] Docker image builds successfully
-
-## Screenshots/Videos
-
-<!-- If applicable, add screenshots or videos of UI changes -->
-
-## Additional Notes
-
-<!-- Any other relevant information -->
