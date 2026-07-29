@@ -53,15 +53,12 @@ update_manager_automation() {
 }
 
 login_automation() {
+  OK_BUTTON="488 449"
   while true; do
-    while true; do
-      LOGIN_WINDOW_ID=$(xdotool search --onlyvisible --name "Login" 2>/dev/null | head -n1)
-      [ -n "$LOGIN_WINDOW_ID" ] && break
-      sleep 1
-    done
+    LOGIN_WINDOW_ID=$(xdotool search --onlyvisible --name "Login" 2>/dev/null | head -n1)
+    [ -z "$LOGIN_WINDOW_ID" ] && sleep 1 && continue
     LOGIN_WINDOW_CLASSNAME=$(xdotool getwindowclassname $LOGIN_WINDOW_ID)
-    [ "$LOGIN_WINDOW_CLASSNAME" != "terminal64.exe" ] && break
-    OK_BUTTON="488 449"
+    [ "$LOGIN_WINDOW_CLASSNAME" != "terminal64.exe" ] && sleep 1 && continue
     xdotool mousemove $OK_BUTTON click 1
   done
 }
