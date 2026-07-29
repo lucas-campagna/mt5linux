@@ -52,7 +52,11 @@ jobs:
 
       - name: Bump version
         run: |
+          echo "Current version: ${{ env.CURRENT_VERSION }}"
+          echo "Bump type: ${{ env.BUMP_TYPE }}"
+          cat pyproject.toml | grep version
           bump2version --current-version ${{ env.CURRENT_VERSION }} ${{ env.BUMP_TYPE }}
+          cat pyproject.toml | grep version
 
       - name: Get new version
         run: |
