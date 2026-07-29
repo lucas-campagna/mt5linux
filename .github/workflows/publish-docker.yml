@@ -11,15 +11,8 @@ jobs:
     permissions:
       packages: write
     steps:
-      - name: Get PR labels
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          labels=$(gh pr view ${{ github.event.pull_request.number }} --json labels -q '.labels[].name' | tr '\n' ' ' | sed 's/ $//')
-          echo "PR_LABELS=$labels" >> $GITHUB_ENV
-
       - name: Check for update-docker-image label
-        if: contains(env.PR_LABELS, 'update-docker-image') == false
+        if: contains(github.event.pull_request.labels.*.name, 'update-docker-image') == false
         run: |
           echo "PR does not have 'update-docker-image' label. Skipping Docker image publish."
           exit 78
