@@ -1,6 +1,6 @@
 # MetaTrader 5 for Linux
 
-A package that uses [Wine](https://www.winehq.org), [RPyC](https://github.com/tomerfiliba-org/rpyc), and a Python Windows version to run [MetaTrader5](https://pypi.org/project/MetaTrader5) on Linux.
+A package that uses [Wine](https://www.winehq.org), [RPyC](https://github.com/tomerfiliba-org/rpyc), and [mt5server.exe](https://github.com/lucas-campagna/mt5linux/releases) (a standalone binary with all dependencies) to run [MetaTrader5](https://pypi.org/project/MetaTrader5) on Linux.
 
 For an explanation of who should use mt5linux and why, see [Motivation and Use Cases](docs/MOTIVATION.md).
 
@@ -8,19 +8,13 @@ For an explanation of who should use mt5linux and why, see [Motivation and Use C
 
 1. Install [Wine](https://wiki.winehq.org/Download).
 
-2. Install [Python for Windows](https://www.python.org/downloads/windows/) on Linux using Wine.
-
-3. Install the MetaTrader5 library on your **Windows** Python:
-
-   ```bash
-   pip install MetaTrader5
-   ```
-
-4. Install this package on both **Windows** and **Linux** Python:
+2. Install this package on **Linux** Python:
 
    ```bash
    pip install mt5linux
    ```
+
+3. Download the latest [mt5server.exe](https://github.com/lucas-campagna/mt5linux/releases) release binary.
 
 ## Docker
 
@@ -32,19 +26,14 @@ Alternatively, you can run this library using Docker, see the [docs](https://git
 
 2. Start the server:
 
-   - **Windows** (native):
-     ```bash
-     python -m mt5linux
-     ```
-
    - **Linux** (with Wine):
      ```bash
-     wine python -m mt5linux
+     wine mt5server.exe
      ```
 
    The server accepts various options. View them with:
    ```bash
-   python -m mt5linux --help
+   wine mt5server.exe --help
    ```
 
 3. On the **Linux** side, use the library as usual:
