@@ -1,17 +1,15 @@
-name: Build MT5 Server Binary
+name: Build MT5 Server
 
 on:
   workflow_dispatch:
-  release:
-    types: [published]
   push:
     tags:
-      - 'server-v*'
+      - 'server-*'
 
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,7 +42,7 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4

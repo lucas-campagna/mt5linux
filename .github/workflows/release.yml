@@ -47,6 +47,24 @@ jobs:
             fi
           fi
 
+      - name: Check for update-docker-image label
+        id: check-docker-label
+        if: github.event_name == 'pull_request'
+        run: |
+          labels='${{ toJson(github.event.pull_request.labels) }}'
+          if echo "$labels" | grep -q '"name":"update-docker-image"'; then
+            echo "NEEDS_DOCKER_TAG=true" >> $GITHUB_ENV
+          fi
+
+      - name: Check for update-server label
+        id: check-server-label
+        if: github.event_name == 'pull_request'
+        run: |
+          labels='${{ toJson(github.event.pull_request.labels) }}'
+          if echo "$labels" | grep -q '"name":"update-server"'; then
+            echo "NEEDS_SERVER_TAG=true" >> $GITHUB_ENV
+          fi
+
       - name: Bump version
         run: |
           case "${{ env.BUMP_TYPE }}" in
@@ -75,8 +93,15 @@ jobs:
           git add pyproject.toml
           git commit -m "Release v${{ env.NEW_VERSION }}"
 
-      - name: Create tag
-        run: git tag ${{ env.NEW_VERSION }}
+      - name: Create tags
+        run: |
+          git tag ${{ env.NEW_VERSION }}
+          if [ "${{ env.NEEDS_DOCKER_TAG }}" == "true" ]; then
+            git tag docker-${{ env.NEW_VERSION }}
+          fi
+          if [ "${{ env.NEEDS_SERVER_TAG }}" == "true" ]; then
+            git tag server-${{ env.NEW_VERSION }}
+          fi
 
       - name: Push changes
         env:
