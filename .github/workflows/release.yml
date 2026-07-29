@@ -3,10 +3,20 @@ name: Release
 on:
   pull_request:
     types: [closed]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
 
 jobs:
   release:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,15 +31,20 @@ jobs:
       - name: Determine bump type
         id: bump
         run: |
-          if [[ '${{ contains(github.event.pull_request.labels.*.name, 'major') }}' == 'true' ]]; then
-            echo "BUMP_TYPE=major" >> $GITHUB_ENV
-          elif [[ '${{ contains(github.event.pull_request.labels.*.name, 'minor') }}' == 'true' ]]; then
-            echo "BUMP_TYPE=minor" >> $GITHUB_ENV
-          elif [[ '${{ contains(github.event.pull_request.labels.*.name, 'patch') }}' == 'true' ]]; then
-            echo "BUMP_TYPE=patch" >> $GITHUB_ENV
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "BUMP_TYPE=${{ inputs.bump }}" >> $GITHUB_ENV
           else
-            echo "No release label found. Expected: major, minor, or patch"
-            exit 1
+            labels='${{ toJson(github.event.pull_request.labels) }}'
+            if echo "$labels" | grep -q '"name":"major"'; then
+              echo "BUMP_TYPE=major" >> $GITHUB_ENV
+            elif echo "$labels" | grep -q '"name":"minor"'; then
+              echo "BUMP_TYPE=minor" >> $GITHUB_ENV
+            elif echo "$labels" | grep -q '"name":"patch"'; then
+              echo "BUMP_TYPE=patch" >> $GITHUB_ENV
+            else
+              echo "No release label found. Expected: major, minor, or patch"
+              exit 1
+            fi
           fi
 
       - name: Install bump2version
