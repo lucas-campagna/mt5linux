@@ -1,6 +1,15 @@
 #!/bin/sh
 set -e
 
+FIRST_RUN=
+if ! [ -e /opt/websockify ]; then
+  FIRST_RUN=1
+  echo "Extracting /opt folder"
+  tar xzvf /app/opt.tar.gz -C / >&2 >/dev/null
+  rm -rf /app/opt.tar.gz
+  chmod +x /opt/websockify /opt/noVNC/http-server
+fi
+
 cleanup() {
   rm -f /tmp/.X0-lock
   rm -f /tmp/.X99-lock
@@ -19,35 +28,40 @@ if ! kill -0 $XVFB_PID 2>/dev/null; then
 fi
 echo "Xvfb started (PID: $XVFB_PID)"
 
+export WINEDEBUG=-all,+err
+export DISPLAY=:0
+export WINEARCH=win64
+export VNC_PORT=$(($NOVNC_PORT - 1))
+export WINEPREFIX=/opt/wineprefix
+export WINEDLLOVERRIDES="mscoree="
+export MT5_HOST=0.0.0.0
+
 echo "Starting x11vnc on port $VNC_PORT..."
 x11vnc -display :0 -forever -rfbport $VNC_PORT -nopw &
 X11VNC_PID=$!
 
 sleep 1
 
-echo "Starting noVNC proxy on port $NOVNC_PORT..."
-websockify --web=/opt/noVNC $NOVNC_PORT localhost:$VNC_PORT &
+echo "Starting noVNC WebSocket proxy on port $NOVNC_PORT..."
+/opt/websockify --daemon --bind-addr 0.0.0.0:$NOVNC_PORT --remote-addr 0.0.0.0:$VNC_PORT &
 NOVNC_PID=$!
+
+echo "Starting noVNC http server on port $NOVNC_PAGE_PORT..."
+echo "{\"port\": $NOVNC_PORT, \"host\": \"localhost\"}" >/opt/noVNC/defaults.json
+ln -sf /opt/noVNC/vnc.html /opt/noVNC/index.html
+(cd /opt/noVNC && ./http-server -ip $NOVNC_PAGE_PORT >&2 2>/dev/null) &
+NOVNC_PAGE_PID=$!
 
 sleep 1
 
-echo "Extracting MetaTrader 5..."
-tar -xzf mt5.tar.gz
-rm -f mt5.tar.gz
-
-# Disable mono/.NET DLL loading to bypass the wine-mono prompt
-export WINEDLLOVERRIDES="mscoree="
-
 # Initialize Wine properly
 echo "Initializing Wine..."
-WINEDLLOVERRIDES="mscoree=" WINEPREFIX=/opt/wineprefix wineboot -init 2>/dev/null || true
+wineboot -init >&2 2>/dev/null || true
 sleep 2
-
-# Delete existing profiles to start fresh
-rm -rf /app/Profiles/Default/*
 
 # Function to apply envvar overrides to config files
 apply_mt5_config() {
+  test $FIRST_RUN || return
   local common_ini="/app/Config/common.ini"
   local terminal_ini="/app/Config/terminal.ini"
 
@@ -187,18 +201,31 @@ EOFTERMINAL
 apply_mt5_config
 
 # Start MT5 (portable mode)
-wine64 /app/terminal64.exe /portable &
+wine64 /opt/wineprefix/drive_c/Program/terminal64.exe /portable &
 MT5_PID=$!
 
-# Wait for MT5 to initialize
-sleep 5
+wait_for_mt5_and_type_server() {
+  test $FIRST_RUN || return
+  echo "Waiting for MT5 start to search for server $SERVER"
+  if [ "$SERVER" ]; then
+    while ! xdotool search --name 'MetaTrader' 2>/dev/null; do
+      sleep 1
+    done
+    sleep 20
+    echo "Searching for server $SERVER"
+    xdotool mousemove 200 230 click 1 type "$SERVER"
+    xdotool key Enter
+  fi
+}
+wait_for_mt5_and_type_server &
+MT5_SETUP_PID=$!
 
 # Function to start the RPyC server
 start_rpyc_server() {
-    echo "Starting RPyC server on ${MT5_HOST}:${RPYC_PORT}..."
-    WINEDLLOVERRIDES="mscoree=" WINEPREFIX=/opt/wineprefix wine C:\\Python311\\python.exe -m mt5linux &
-    RPYC_PID=$!
-    echo "RPyC server started (PID: $RPYC_PID)"
+  echo "Starting RPyC server on ${MT5_HOST}:${RPYC_PORT}..."
+  wine64 C:\\mt5server.exe --host $MT5_HOST --port $RPYC_PORT &
+  RPYC_PID=$!
+  echo "RPyC server started (PID: $RPYC_PID)"
 }
 
 # Start the RPyC server
@@ -206,39 +233,30 @@ start_rpyc_server
 
 # Watchdog loop for RPyC server
 watchdog_rpyc() {
-    while true; do
-        sleep 10
-        if ! kill -0 $RPYC_PID 2>/dev/null; then
-            echo "RPyC server crashed (PID: $RPYC_PID). Restarting..."
-            start_rpyc_server
-        fi
-    done
+  while true; do
+    sleep 10
+    if ! kill -0 $RPYC_PID 2>/dev/null; then
+      echo "RPyC server crashed (PID: $RPYC_PID). Restarting..."
+      start_rpyc_server
+    fi
+  done
 }
 
 # Start watchdog in background
 watchdog_rpyc &
 WATCHDOG_PID=$!
 
-# Wait for MT5 to initialize, then kill unnecessary Wine processes
-sleep 3
-for proc in explorer.exe winedevice.exe svchost.exe plugplay.exe; do
-    pid=$(pgrep -f "$proc" 2>/dev/null | head -1)
-    if [ -n "$pid" ]; then
-        echo "Killing unnecessary process: $proc (PID: $pid)"
-        kill $pid 2>/dev/null || true
-    fi
-done
-
 echo ""
 echo "All services started:"
 echo "  - Xvfb :0 (PID: $XVFB_PID)"
 echo "  - x11vnc :$VNC_PORT (PID: $X11VNC_PID)"
 echo "  - noVNC :$NOVNC_PORT (PID: $NOVNC_PID)"
+echo "  - noVNC page :$NOVNC_PAGE_PORT (PID: $NOVNC_PAGE_PID)"
 echo "  - MT5 (PID: $MT5_PID)"
 echo "  - RPyC server on ${MT5_HOST}:${RPYC_PORT} (PID: $RPYC_PID)"
 echo "  - Watchdog (PID: $WATCHDOG_PID)"
 echo ""
-echo "Access MT5 at: http://localhost:$NOVNC_PORT/vnc.html"
+echo "Access MT5 at: http://localhost:$NOVNC_PAGE_PORT"
 echo ""
 echo "MT5 Configuration:"
 echo "  - LOGIN: ${LOGIN:-not set}"
@@ -249,10 +267,10 @@ echo "Connect from Linux Python:"
 echo "  mt5 = MetaTrader5(host='<container-ip>', port=$RPYC_PORT)"
 
 cleanup() {
-    echo "Cleaning up..."
-    kill $WATCHDOG_PID 2>/dev/null || true
-    rm -f /tmp/.X0-lock
-    rm -f /tmp/.X99-lock
+  echo "Cleaning up..."
+  kill $WATCHDOG_PID 2>/dev/null || true
+  rm -f /tmp/.X0-lock
+  rm -f /tmp/.X99-lock
 }
 
 trap cleanup EXIT
