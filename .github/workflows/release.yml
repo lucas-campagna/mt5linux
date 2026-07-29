@@ -21,11 +21,11 @@ jobs:
       - name: Determine bump type
         id: bump
         run: |
-          if contains(github.event.pull_request.labels.*.name, 'major'); then
+          if [[ '${{ contains(github.event.pull_request.labels.*.name, 'major') }}' == 'true' ]]; then
             echo "BUMP_TYPE=major" >> $GITHUB_ENV
-          elif contains(github.event.pull_request.labels.*.name, 'minor'); then
+          elif [[ '${{ contains(github.event.pull_request.labels.*.name, 'minor') }}' == 'true' ]]; then
             echo "BUMP_TYPE=minor" >> $GITHUB_ENV
-          elif contains(github.event.pull_request.labels.*.name, 'patch'); then
+          elif [[ '${{ contains(github.event.pull_request.labels.*.name, 'patch') }}' == 'true' ]]; then
             echo "BUMP_TYPE=patch" >> $GITHUB_ENV
           else
             echo "No release label found. Expected: major, minor, or patch"
