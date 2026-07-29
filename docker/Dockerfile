@@ -1,4 +1,4 @@
-# Builder stage - Clone noVNC and install Python in Wine
+# Builder stage - Install MT5 in Wine and clone noVNC
 FROM alpine:3.20 AS builder
 
 RUN apk add --no-cache \
@@ -6,34 +6,30 @@ RUN apk add --no-cache \
     wine \
     xvfb \
     curl \
-    python3 \
-    py3-pip
+    jq
 
 RUN mkdir -p /opt/wineprefix
 
-# Install Python 3.11 for Windows
-RUN mkdir -p /tmp/python-install && \
-    curl -L -o /tmp/python-install/python-installer.exe https://www.python.org/ftp/python/3.11.0/python-3.11.0-amd64.exe && \
+# Download and install MetaTrader 5
+RUN mkdir -p /tmp/mt5install && \
+    curl -L -o /tmp/mt5install/mt5setup.exe https://download.mql5.com/cdn/web/metaquotes.ltd/mt5/mt5setup.exe && \
     Xvfb :99 -screen 0 1024x768x16 >/dev/null 2>&1 & \
     XVFB_PID=$! && \
     sleep 2 && \
-    WINEDLLOVERRIDES="mscoree=" DISPLAY=:99 WINEPREFIX=/opt/wineprefix wine /tmp/python-install/python-installer.exe /quiet InstallAllUsers=1 PrependPath=1 TargetDir=C:\\Python311 && \
+    WINEDLLOVERRIDES="mscoree=" DISPLAY=:99 WINEPREFIX=/opt/wineprefix wine /tmp/mt5install/mt5setup.exe /auto /path:"C:\\Program Files\\MT5" && \
     sleep 5 && \
     kill $XVFB_PID 2>/dev/null || true
 
-# Install mt5linux in wine python
-RUN Xvfb :99 -screen 0 1024x768x16 >/dev/null 2>&1 & \
-    XVFB_PID=$! && \
-    sleep 2 && \
-    WINEDLLOVERRIDES="mscoree=" DISPLAY=:99 WINEPREFIX=/opt/wineprefix wine C:\\Python311\\python.exe -m pip install --upgrade pip && \
-    WINEDLLOVERRIDES="mscoree=" DISPLAY=:99 WINEPREFIX=/opt/wineprefix wine C:\\Python311\\python.exe -m pip install mt5linux && \
-    kill $XVFB_PID 2>/dev/null || true
+# Download mt5server.exe from GitHub releases
+RUN curl -s "https://api.github.com/repos/lucas-campagna/mt5linux/releases/latest" | \
+    jq -r '.assets[] | select(.name | contains("mt5server")) | .browser_download_url' | \
+    xargs -I {} curl -L -o /opt/wineprefix/drive_c/mt5server.exe {}
 
 # Clone noVNC
-RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC && \
+RUN git clone --depth 1 --branch v1.7.0 https://github.com/novnc/noVNC.git /opt/noVNC && \
     rm -rf /opt/noVNC/.git
 
-# Runtime stage - Minimal Alpine image with Wine + Python + mt5linux
+# Runtime stage - Minimal Alpine image with Wine + MT5
 FROM alpine:3.20
 
 RUN apk add --no-cache \
