@@ -1,17 +1,14 @@
 services:
   mt5linux:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
+    # build:
+    #   context: ..
+    #   dockerfile: docker/Dockerfile
     image: lprett/mt5linux:local
     container_name: mt5linux
     restart: unless-stopped
     ports:
-      - "8080:8080"
-      - "18812:18812"
+      - 8080:8080   # noVNC page port
+      - 5901:5901   # noVNC port
+      - 18812:18812 # mt5linux page port
     environment:
-      - LOGIN=${MT5_LOGIN:-}
-      - PASSWORD=${MT5_PASSWORD:-}
-      - SERVER=${MT5_SERVER:-}
-      - MT5_HOST=0.0.0.0
-      - RPYC_PORT=18812
+      - SERVER=${MT5_SERVER:-} # String to search for server on start up
