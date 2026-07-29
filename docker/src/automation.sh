@@ -17,12 +17,11 @@ server_search_automation() {
   while true; do
     if [ -p /opt/wineprefix/drive_c/server ]; then
       SERVER_NAME=$(cat /opt/wineprefix/drive_c/server)
-      if [ -n "$SERVER_NAME" ]; then
-        echo "Server search: typing $SERVER_NAME"
-        if is_open_search_server_window >/dev/null; then
-          xdotool mousemove $INPUT_ELEMENT click 1 type "$SERVER_NAME"
-          xdotool key Enter
-        fi
+      [ -z "$SERVER_NAME" ] && continue
+      echo "Server search: typing $SERVER_NAME"
+      if is_open_search_server_window >/dev/null; then
+        xdotool mousemove $INPUT_ELEMENT click 1 type "$SERVER_NAME"
+        xdotool key Enter
       fi
     fi
   done
