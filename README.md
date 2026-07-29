@@ -1,6 +1,6 @@
 # MetaTrader 5 for Linux
 
-<!-- test patch release -->
+<!-- test final release -->
 
 A package that uses [Wine](https://www.winehq.org), [RPyC](https://github.com/tomerfiliba-org/rpyc), and [mt5server.exe](https://github.com/lucas-campagna/mt5linux/releases) (a standalone binary with all dependencies) to run [MetaTrader5](https://pypi.org/project/MetaTrader5) on Linux.
 
