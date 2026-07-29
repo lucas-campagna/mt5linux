@@ -40,6 +40,13 @@ RUN curl -s "https://api.github.com/repos/TheWaWaR/simple-http-server/releases/l
     jq -r '.assets[] | select((.name | contains("x86_64-unknown-linux-musl-simple")) and (.name | contains("sha") | not)) | .browser_download_url' | \
     xargs -I {} curl -L -o /opt/noVNC/http-server {}
 
+RUN rm -rf /opt/wineprefix/drive_c/users/root/AppData/Roaming/MetaQuotes \
+       /opt/wineprefix/drive_c/ProgramData/MetaQuotes \
+       /opt/wineprefix/drive_c/Program/uninstall.exe \
+       /opt/wineprefix/drive_c/Program/Profiles/Default/* \
+       /opt/wineprefix/drive_c/Program/Bases/Default
+RUN tar czvf /opt.tar.gz /opt
+
 # Runtime stage - Minimal Alpine image with Wine + MT5
 FROM alpine:3.20
 
@@ -48,31 +55,19 @@ RUN apk add --no-cache \
     xvfb \
     x11vnc \
     xdotool \
-    curl \
-    tar
+    curl
 
-RUN rm -rf /usr/lib/wine/i386-windows
-
-COPY --from=builder /opt/wineprefix /opt/wineprefix
-COPY --from=builder /opt/noVNC /opt/noVNC
-
-COPY docker/websockify /usr/bin/websockify
-RUN chmod +x /usr/bin/websockify
-
-COPY docker/mt5.tar.gz /app/
-COPY docker/run_mt5.sh /run_mt5.sh
-RUN chmod +x /run_mt5.sh
-
-RUN mkdir -p /opt/wineprefix
-
-ENV DISPLAY=:0
-ENV VNC_PORT=5900
-ENV NOVNC_PORT=8080
-ENV WINEPREFIX=/opt/wineprefix
-ENV MT5_HOST=0.0.0.0
-ENV RPYC_PORT=18812
 WORKDIR /app
 
-EXPOSE 8080 18812
+COPY --from=builder /opt.tar.gz /app
+COPY run_mt5.sh /run_mt5.sh
+RUN chmod +x /run_mt5.sh
+RUN rm -rf /usr/lib/wine/i386-windows
+
+ENV NOVNC_PORT=5901
+ENV NOVNC_PAGE_PORT=8080
+ENV RPYC_PORT=18812
+
+EXPOSE 5901 8080 18812
 
 ENTRYPOINT ["/run_mt5.sh"]
