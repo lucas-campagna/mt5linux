@@ -100,3 +100,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: git push --tags origin ${{ github.ref }}
+
+      - name: Trigger PyPI publish
+        if: github.event_name == 'pull_request'
+        run: gh workflow run publish.yml
+
+      - name: Trigger Docker publish
+        if: github.event_name == 'pull_request'
+        run: |
+          labels='${{ toJson(github.event.pull_request.labels) }}'
+          if echo "$labels" | grep -q '"name":"update-docker-image"'; then
+            gh workflow run publish-docker.yml --field version=${{ env.NEW_VERSION }}
+          fi
+
+      - name: Trigger Server build
+        if: github.event_name == 'pull_request'
+        run: |
+          labels='${{ toJson(github.event.pull_request.labels) }}'
+          if echo "$labels" | grep -q '"name":"update-server"'; then
+            gh workflow run build-server.yml
+          fi
