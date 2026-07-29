@@ -10,5 +10,3 @@ services:
       - 8080:8080   # noVNC page port
       - 5901:5901   # noVNC port
       - 18812:18812 # mt5linux page port
-    environment:
-      - SERVER=${MT5_SERVER:-} # String to search for server on start up
