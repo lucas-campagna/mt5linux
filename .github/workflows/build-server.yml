@@ -57,6 +57,15 @@ jobs:
           name: mt5server
           path: dist
 
+      - name: Create tag if needed
+        if: github.event.inputs.create-release == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          version=$(date +%Y.%m.%d.%H%M%S)
+          git tag "server-$version"
+          git push origin tag "server-$version"
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
