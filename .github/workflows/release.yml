@@ -127,5 +127,5 @@ jobs:
         run: |
           labels='${{ toJson(github.event.pull_request.labels) }}'
           if echo "$labels" | grep -q '"name":"update-server"'; then
-            gh workflow run build-server.yml --field create-release=true
+            gh workflow run build-server.yml --field version=${{ env.NEW_VERSION }}
           fi

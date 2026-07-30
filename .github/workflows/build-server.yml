@@ -3,11 +3,10 @@ name: Build MT5 Server
 on:
   workflow_dispatch:
     inputs:
-      create-release:
-        description: 'Create GitHub Release'
+      version:
+        description: 'Version tag to use (e.g., 1.0.10)'
         required: false
-        default: 'false'
-        type: boolean
+        type: string
   push:
     tags:
       - 'server-*'
@@ -47,7 +46,7 @@ jobs:
 
   release:
     needs: build
-    if: startsWith(github.ref, 'refs/tags/server-') || github.event.inputs.create-release == 'true'
+    if: startsWith(github.ref, 'refs/tags/server-') || github.event.inputs.version != ''
     runs-on: ubuntu-latest
 
     steps:
@@ -62,17 +61,15 @@ jobs:
           path: dist
 
       - name: Create tag if needed
-        if: github.event.inputs.create-release == 'true'
+        if: github.event.inputs.version != ''
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          version=$(date +%Y.%m.%d.%H%M%S)
-          echo "VERSION=$version" >> $GITHUB_ENV
-          git tag "server-$version"
-          git push origin tag "server-$version"
+          git tag "server-${{ github.event.inputs.version }}"
+          git push origin tag "server-${{ github.event.inputs.version }}"
 
       - name: Create Release
-        if: github.event.inputs.create-release != 'true'
+        if: github.event.inputs.version == ''
         uses: softprops/action-gh-release@v1
         with:
           files: dist/mt5server.exe
@@ -81,8 +78,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Release via CLI
-        if: github.event.inputs.create-release == 'true'
+        if: github.event.inputs.version != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "server-${{ env.VERSION }}" dist/mt5server.exe --generate-notes
+          gh release create "server-${{ github.event.inputs.version }}" dist/mt5server.exe --generate-notes
