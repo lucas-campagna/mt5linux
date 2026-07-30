@@ -6,8 +6,6 @@ apply_mt5_config() {
   local common_ini="$MT5/common.ini"
   local terminal_ini="$MT5/terminal.ini"
 
-  mkdir -p /app/Config
-
   cat >/tmp/common_ini.txt <<'EOFCOMMON'
 [Common]
 NewsEnable=0
