@@ -67,13 +67,22 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           version=$(date +%Y.%m.%d.%H%M%S)
+          echo "VERSION=$version" >> $GITHUB_ENV
           git tag "server-$version"
           git push origin tag "server-$version"
 
       - name: Create Release
+        if: github.event.inputs.create-release != 'true'
         uses: softprops/action-gh-release@v1
         with:
           files: dist/mt5server.exe
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release via CLI
+        if: github.event.inputs.create-release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "server-${{ env.VERSION }}" dist/mt5server.exe --generate-notes
