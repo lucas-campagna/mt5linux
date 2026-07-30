@@ -35,8 +35,7 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --name mt5server --onefile --additional-hooks-dir=. --hidden-import=MetaTrader5 mt5linux/__main__.py
-
+          pyinstaller --name mt5server --onefile --additional-hooks-dir=. --hidden-import=MetaTrader5 --hidden-import=numpy mt5linux/__main__.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
