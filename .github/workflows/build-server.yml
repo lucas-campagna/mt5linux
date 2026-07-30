@@ -60,14 +60,6 @@ jobs:
           name: mt5server
           path: dist
 
-      - name: Create tag if needed
-        if: github.event.inputs.version != ''
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "server-${{ github.event.inputs.version }}"
-          git push origin tag "server-${{ github.event.inputs.version }}"
-
       - name: Create Release
         if: github.event.inputs.version == ''
         uses: softprops/action-gh-release@v1
