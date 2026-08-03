@@ -1,24 +1,80 @@
-import rpyc
+from mt5linux._container_manager import ContainerManager
 
 
 class MetaTrader5(object):
     """MetaTrader5"""
 
-    def __init__(self, host="0.0.0.0", port=18812, timeout=300):
+    def __init__(
+        self,
+        host="localhost",
+        port=18812,
+        timeout=300,
+        engine="auto",
+        image: str = "lprett/mt5linux:latest",
+        mt5_login: str = None,
+        mt5_password: str = None,
+        mt5_server: str = None,
+        ui_port: int = None,
+        ui_password: str = None,
+        vnc_port: int = 5901,
+        search_on_init: bool = True,
+    ):
         """
-        host: str
-            default = 0.0.0.0
-        port: int
-            default = 18812
-        timeout: int
-            Sync request timout
-            default = 300
+        MetaTrader5 client for Linux.
+
+        Args:
+            host: str
+                Host to connect to. Default = localhost
+            port: int
+                Port for RPyC connection. Default = 18812
+            timeout: int
+                Sync request timeout. Default = 300
+            engine: str
+                Container engine to use: 'auto', 'docker', or 'udocker'.
+                'auto' uses docker if available, otherwise udocker.
+                Default = 'auto'
+            image: str
+                Docker image to use when creating a new container.
+                Default = 'lprett/mt5linux:latest'
+            mt5_login: str, optional
+                MT5 account login for auto-login
+            mt5_password: str, optional
+                MT5 account password for auto-login
+            mt5_server: str, optional
+                MT5 trade server for auto-login
+            ui_port: int, optional
+                UI (noVNC) port. If not provided, finds first available port.
+                Default = None (auto-select)
+            ui_password: str, optional
+                UI password for the container. Default = None (no password)
+            vnc_port: int
+                VNC port. Default = 5901
+            search_on_init: bool
+                Whether to search for server on initialize. Default = True
         """
-        self.__conn = rpyc.classic.connect(host, port)
-        self.__conn._config["sync_request_timeout"] = timeout
-        self.__conn.execute("import sys; sys.path.append('C:\\\\mt5libs')")
-        self.__conn.execute("import MetaTrader5 as mt5")
-        self.__conn.execute("import datetime")
+        self._search_on_init = search_on_init
+        self._container = ContainerManager(
+            engine=engine,
+            host=host,
+            port=port,
+            timeout=timeout,
+            image=image,
+            mt5_login=mt5_login,
+            mt5_password=mt5_password,
+            mt5_server=mt5_server,
+            ui_port=ui_port,
+            ui_password=ui_password,
+            vnc_port=vnc_port,
+        )
+
+        self._container.execute("import sys; sys.path.append('C:\\\\mt5libs')")
+        self._container.execute("import MetaTrader5 as mt5")
+        self._container.execute("import datetime")
+
+    @property
+    def container(self) -> ContainerManager:
+        """Get the container manager for this MetaTrader5 instance."""
+        return self._container
 
     def __del__(self):
         pass
@@ -116,8 +172,10 @@ class MetaTrader5(object):
 
             `shutdown`, `terminal_info`, `version`
         """
+        if self._search_on_init and "server" in kwargs:
+            self._container.ui.search_server(kwargs["server"])
         code = f"mt5.initialize(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def login(self, *args, **kwargs):
         r"""
@@ -244,7 +302,7 @@ class MetaTrader5(object):
             `initialize`, `shutdown`
         """
         code = f"mt5.login(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def shutdown(self, *args, **kwargs):
         r"""
@@ -289,7 +347,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.shutdown(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def version(self, *args, **kwargs):
         r"""
@@ -384,7 +442,7 @@ class MetaTrader5(object):
             `initialize`, `shutdown`, `terminal_info`
         """
         code = f"mt5.version(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def last_error(self, *args, **kwargs):
         r"""
@@ -444,7 +502,7 @@ class MetaTrader5(object):
             `version`, `GetLastError`
         """
         code = f"mt5.last_error(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def account_info(self, *args, **kwargs):
         r"""
@@ -578,7 +636,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.account_info(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def terminal_info(self, *args, **kwargs):
         r"""
@@ -698,7 +756,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.terminal_info(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def symbols_total(self, *args, **kwargs):
         r"""
@@ -749,7 +807,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.symbols_total(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def symbols_get(self, *args, **kwargs):
         r"""
@@ -867,7 +925,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.symbols_get(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def symbol_info(self, *args, **kwargs):
         r"""
@@ -1042,7 +1100,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.symbol_info(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def symbol_info_tick(self, *args, **kwargs):
         r"""
@@ -1123,7 +1181,7 @@ class MetaTrader5(object):
             ``symbol_info`
         """
         code = f"mt5.symbol_info_tick(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def symbol_select(self, *args, **kwargs):
         r"""
@@ -1322,7 +1380,7 @@ class MetaTrader5(object):
             `symbol_info`
         """
         code = f"mt5.symbol_select(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def market_book_add(self, *args, **kwargs):
         r"""
@@ -1355,7 +1413,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.market_book_add(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def market_book_get(self, *args, **kwargs):
         r"""
@@ -1495,7 +1553,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.market_book_get(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def market_book_release(self, symbol):
         r"""
@@ -1528,7 +1586,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.market_book_release({symbol})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def copy_rates_from(self, symbol, timeframe, date_from, count):
         r"""
@@ -1685,8 +1743,10 @@ class MetaTrader5(object):
 
 
         """
-        code = f'mt5.copy_rates_from("{symbol}", {timeframe}, {repr(date_from.astimezone())}, {count})'
-        return rpyc.classic.obtain(self.__conn.eval(code))
+        code = f'mt5.copy_rates_from("{symbol}", {timeframe}, {
+            repr(date_from.astimezone())
+        }, {count})'
+        return self._container.eval(code)
 
     def copy_rates_from_pos(self, symbol, timeframe, start_pos, count):
         r"""
@@ -1806,8 +1866,9 @@ class MetaTrader5(object):
 
             `CopyRates`, `copy_rates_from`, `copy_rates_range`, `copy_ticks_from`, `copy_ticks_range`
         """
-        code = f'mt5.copy_rates_from_pos("{symbol}",{timeframe},{start_pos},{count})'
-        return rpyc.utils.classic.obtain(self.__conn.eval(code))
+        code = f'mt5.copy_rates_from_pos("{symbol}",{timeframe},{
+            start_pos},{count})'
+        return self._container.eval(code)
 
     def copy_rates_range(self, symbol, timeframe, date_from, date_to):
         r"""
@@ -1942,8 +2003,10 @@ class MetaTrader5(object):
 
 
         """
-        code = f'mt5.copy_rates_range("{symbol}", {timeframe}, {repr(date_from.astimezone())}, {repr(date_to.astimezone())})'
-        return rpyc.utils.classic.obtain(self.__conn.eval(code))
+        code = f'mt5.copy_rates_range("{symbol}", {timeframe}, {
+            repr(date_from.astimezone())
+        }, {repr(date_to.astimezone())})'
+        return self._container.eval(code)
 
     def copy_ticks_from(self, symbol, date_from, count, flags):
         r"""
@@ -2097,8 +2160,10 @@ class MetaTrader5(object):
 
 
         """
-        code = f'mt5.copy_ticks_from("{symbol}", {repr(date_from.astimezone())}, {count}, {flags})'
-        return rpyc.utils.classic.obtain(self.__conn.eval(code))
+        code = f'mt5.copy_ticks_from("{symbol}", {repr(date_from.astimezone())}, {
+            count
+        }, {flags})'
+        return self._container.eval(code)
 
     def copy_ticks_range(self, symbol, date_from, date_to, flags):
         r"""
@@ -2232,8 +2297,10 @@ class MetaTrader5(object):
 
             `CopyRates`, `copy_rates_from_pos`, `copy_rates_range`, `copy_ticks_from`, `copy_ticks_range`
         """
-        code = f'mt5.copy_ticks_range("{symbol}", {repr(date_from.astimezone())}, {repr(date_to.astimezone())}, {flags})'
-        return rpyc.utils.classic.obtain(self.__conn.eval(code))
+        code = f'mt5.copy_ticks_range("{symbol}", {repr(date_from.astimezone())}, {
+            repr(date_to.astimezone())
+        }, {flags})'
+        return self._container.eval(code)
 
     def orders_total(self, *args, **kwargs):
         r"""
@@ -2284,7 +2351,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.orders_total(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def orders_get(self, *args, **kwargs):
         r"""
@@ -2414,7 +2481,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.orders_get(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def order_calc_margin(self, *args, **kwargs):
         r"""
@@ -2536,7 +2603,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.order_calc_margin(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def order_calc_profit(self, *args, **kwargs):
         r"""
@@ -2660,7 +2727,7 @@ class MetaTrader5(object):
             `order_calc_margin`, `order_check`
         """
         code = f"mt5.order_calc_profit(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def order_check(self, request):
         r"""
@@ -2825,7 +2892,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.order_check({request!r})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def order_send(self, request):
         r"""
@@ -3034,7 +3101,7 @@ class MetaTrader5(object):
             `order_check`, `OrderSend`,Trading operation types, Trading request structure, Structure of the trading request check results, Structure of the trading request result
         """
         code = f"mt5.order_send({request})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def positions_total(self, *args, **kwargs):
         r"""
@@ -3085,7 +3152,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.positions_total(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def positions_get(self, *args, **kwargs):
         r"""
@@ -3211,7 +3278,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.positions_get(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def history_orders_total(self, date_from, date_to):
         r"""
@@ -3275,8 +3342,10 @@ class MetaTrader5(object):
 
             `history_orders_get`, `history_deals_total`
         """
-        code = f"mt5.history_orders_total({repr(date_from.astimezone())}, {repr(date_to.astimezone())})"
-        return self.__conn.eval(code)
+        code = f"mt5.history_orders_total({repr(date_from.astimezone())}, {
+            repr(date_to.astimezone())
+        })"
+        return self._container.eval(code)
 
     def history_orders_get(self, *args, **kwargs):
         r"""
@@ -3416,7 +3485,7 @@ class MetaTrader5(object):
 
         """
         code = f"mt5.history_orders_get(*{args},**{kwargs})"
-        return self.__conn.eval(code)
+        return self._container.eval(code)
 
     def history_deals_total(self, date_from, date_to):
         r"""
@@ -3482,8 +3551,10 @@ class MetaTrader5(object):
 
 
         """
-        code = f"mt5.history_deals_total({repr(date_from.astimezone())}, {repr(date_to.astimezone())})"
-        return self.__conn.eval(code)
+        code = f"mt5.history_deals_total({repr(date_from.astimezone())}, {
+            repr(date_to.astimezone())
+        })"
+        return self._container.eval(code)
 
     def history_deals_get(self, *args, **kwargs):
         r"""
@@ -3648,11 +3719,11 @@ class MetaTrader5(object):
             `history_deals_total`, `history_orders_get`
         """
         code = f"mt5.history_deals_get(*{args},**{kwargs})"
-        response = self.__conn.eval(code)
+        response = self._container.eval(code)
         return response
 
     def eval(self, command: str):
-        return self.__conn.eval(command)
+        return self._container.eval(command)
 
     def execute(self, command: str):
-        self.__conn.execute(command)
+        self._container.execute(command)
