@@ -9,11 +9,11 @@ load_dotenv()
 
 class TestBasicContainerInitialization(unittest.TestCase):
     def test_basic_container_initialization(self):
-        mt5 = MetaTrader5(image='lprett/mt5linux:local')
+        mt5 = MetaTrader5(image_tag="local")
         assert mt5.initialize(
-            server=os.environ['SERVER'],
-            login=int(os.environ['LOGIN']),
-            password=os.environ['PASSWORD']
+            server=os.environ["SERVER"],
+            login=int(os.environ["LOGIN"]),
+            password=os.environ["PASSWORD"],
         )
 
 

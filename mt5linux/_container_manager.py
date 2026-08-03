@@ -18,7 +18,7 @@ class ContainerManager:
         host: str = "0.0.0.0",
         port: int = 18812,
         timeout: int = 300,
-        image: str = "lprett/mt5linux:latest",
+        image_tag: str = "latest",
         mt5_login: str = None,
         mt5_password: str = None,
         mt5_server: str = None,
@@ -36,7 +36,7 @@ class ContainerManager:
             host: Host to connect to. Default = 0.0.0.0
             port: Port for RPyC connection. Default = 18812
             timeout: Sync request timeout. Default = 300
-            image: Docker image to use. Default = 'lprett/mt5linux:latest'
+            image_tag: Docker image tag to use. Default = 'latest'
             mt5_login: MT5 account login for auto-login
             mt5_password: MT5 account password for auto-login
             mt5_server: MT5 trade server for auto-login
@@ -47,7 +47,7 @@ class ContainerManager:
         self._engine = engine
         self._host = host
         self._timeout = timeout
-        self._image = f"lprett/mt5linux:{image}"
+        self._image = f"lprett/mt5linux:{image_tag}"
         self._mt5_login = mt5_login
         self._mt5_password = mt5_password
         self._mt5_server = mt5_server
@@ -59,7 +59,7 @@ class ContainerManager:
         self._runtime.start_container(
             host=host,
             port=port,
-            image=image,
+            image=self._image,
             mt5_login=mt5_login,
             mt5_password=mt5_password,
             mt5_server=mt5_server,
@@ -170,7 +170,7 @@ class ContainerManager:
     def run(
         self,
         port: int,
-        image: str = "local",
+        image_tag: str = "latest",
         mt5_login: Optional[str] = None,
         mt5_password: Optional[str] = None,
         mt5_server: Optional[str] = None,
@@ -182,7 +182,7 @@ class ContainerManager:
 
         Args:
             port: The port for RPyC connection
-            image: Docker image tag to use (default: 'local')
+            image_tag: Docker image tag to use (default: 'latest')
             mt5_login: Optional MT5 login
             mt5_password: Optional MT5 password
             mt5_server: Optional MT5 server
@@ -195,7 +195,7 @@ class ContainerManager:
         return self._runtime.run(
             port=port,
             name=self._name,
-            image=f"lprett/mt5linux:{image}",
+            image=f"lprett/mt5linux:{image_tag}",
             mt5_login=mt5_login,
             mt5_password=mt5_password,
             mt5_server=mt5_server,

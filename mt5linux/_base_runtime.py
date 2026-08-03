@@ -45,34 +45,28 @@ class Runtime(ABC):
     @abstractmethod
     def _create_connection_file(self) -> None:
         """Create a connection file in /tmp/connections/<uuid> inside the container."""
-        raise NotImplementedError(
-            "Subclasses must implement _create_connection_file()")
+        raise NotImplementedError("Subclasses must implement _create_connection_file()")
 
     @abstractmethod
     def _delete_connection_file(self) -> None:
         """Delete the connection file in /tmp/connections/<uuid> inside the container."""
-        raise NotImplementedError(
-            "Subclasses must implement _delete_connection_file()")
+        raise NotImplementedError("Subclasses must implement _delete_connection_file()")
 
     @abstractmethod
     def _list_connection_files(self) -> list[str]:
         """List all connection files in /tmp/connections/."""
-        raise NotImplementedError(
-            "Subclasses must implement _list_connection_files()")
+        raise NotImplementedError("Subclasses must implement _list_connection_files()")
 
     def __del__(self):
-        self._delete_connection_file()
-        if not self._list_connection_files() and self._name:
-            import time
-
-            print("grace time start")
-            time.sleep(5)
-            print("grace time end")
+        if hasattr(self, "_name") and self._name:
+            self._delete_connection_file()
             if not self._list_connection_files():
-                print("stoping container", self._name)
-                self.stop(self._name)
-                print("removing container")
-                self.remove(self._name)
+                import time
+
+                time.sleep(5)
+                if not self._list_connection_files():
+                    self.stop(self._name)
+                    self.remove(self._name)
 
     @property
     def name(self) -> Optional[str]:
@@ -209,8 +203,7 @@ class Runtime(ABC):
 
         print(
             f"No container found on {host}:{port}. "
-            f"Creating new container (UI: {self._ui_port}, MT5: {
-                self._port})..."
+            f"Creating new container (UI: {self._ui_port}, MT5: {self._port})..."
         )
 
         if not self._run_container(self._name, image, ports, env_vars):

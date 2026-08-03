@@ -10,7 +10,7 @@ class MetaTrader5(object):
         port=18812,
         timeout=300,
         engine="auto",
-        image: str = "23",
+        image_tag: str = "latest",
         mt5_login: str = None,
         mt5_password: str = None,
         mt5_server: str = None,
@@ -33,9 +33,9 @@ class MetaTrader5(object):
                 Container engine to use: 'auto', 'docker', or 'udocker'.
                 'auto' uses docker if available, otherwise udocker.
                 Default = 'auto'
-            image: str
-                Docker image to use when creating a new container.
-                Default = 'lprett/mt5linux:latest'
+            image_tag: str
+                Docker image tag to use when creating a new container.
+                Default = 'latest'
             mt5_login: str, optional
                 MT5 account login for auto-login
             mt5_password: str, optional
@@ -58,7 +58,7 @@ class MetaTrader5(object):
             host=host,
             port=port,
             timeout=timeout,
-            image=image,
+            image_tag=image_tag,
             mt5_login=mt5_login,
             mt5_password=mt5_password,
             mt5_server=mt5_server,
