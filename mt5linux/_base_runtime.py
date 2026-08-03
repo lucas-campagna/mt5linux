@@ -1,6 +1,7 @@
 import subprocess
 import socket
 import uuid
+import threading
 from abc import ABC, abstractmethod
 from typing import Optional, Literal
 
@@ -77,13 +78,24 @@ class Runtime(ABC):
     def __del__(self):
         if hasattr(self, "_name") and self._name:
             self._delete_connection_file()
-            if not self._list_connection_files():
-                import time
+            if not self._list_connection_files() and self._is_controlled_container():
 
-                time.sleep(5)
-                if not self._list_connection_files():
-                    self.stop(self._name)
-                    self.remove(self._name)
+                def _cleanup():
+                    import time
+
+                    time.sleep(5)
+                    if (
+                        not self._list_connection_files()
+                        and self._is_controlled_container()
+                    ):
+                        self.stop(self._name)
+                        self.remove(self._name)
+
+                import sys
+                if sys.is_finalizing():
+                    _cleanup()
+                else:
+                    threading.Thread(target=_cleanup).start()
 
     @property
     def name(self) -> Optional[str]:
@@ -227,6 +239,8 @@ class Runtime(ABC):
         if not self._run_container(self._name, image, ports, env_vars):
             raise RuntimeError(f"Failed to create container")
 
+        self._create_controlled_container_file()
+
         print(f"Container '{self._name}' started")
         print(f"UI: http://{host}:{self._ui_port}")
         print(f"VNC: {host}:{vnc_port} (internal)")
@@ -266,7 +280,10 @@ class Runtime(ABC):
             f"{port}:18812": None,
         }
 
-        return self._run_container(name, image, ports, env_vars)
+        result = self._run_container(name, image, ports, env_vars)
+        if result:
+            self._create_controlled_container_file()
+        return result
 
     @abstractmethod
     def _stop_container(self, name: str) -> bool:
