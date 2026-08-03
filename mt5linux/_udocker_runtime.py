@@ -49,35 +49,47 @@ class UdockerRuntime(Runtime):
             return False
 
     def _get_container_by_port(self, port: int) -> Optional[str]:
-        """Check if a udocker container is running on the specified port."""
+        """Check if a udocker container is running on the specified port by image and port."""
         try:
             result = subprocess.run(
-                ["udocker", "ps"], capture_output=True, text=True, check=False
+                ["udocker", "ps", "-o"],
+                capture_output=True,
+                text=True,
+                check=False,
             )
             if result.returncode != 0:
                 return None
 
-            container_name = f"mt5linux-{port}"
             for line in result.stdout.strip().split("\n"):
-                if container_name in line:
-                    return container_name
+                if not line.startswith("lprett/mt5linux:"):
+                    continue
+                if f":{port}" in line or f"{port}/tcp" in line or f"{port}/udp" in line:
+                    parts = line.split()
+                    if parts:
+                        return parts[-1]
             return None
         except Exception:
             return None
 
     def _get_stopped_container_by_port(self, port: int) -> Optional[str]:
-        """Check if a udocker container is stopped on the specified port."""
+        """Check if a udocker container is stopped on the specified port by image and port."""
         try:
-            container_name = f"mt5linux-{port}"
             result = subprocess.run(
-                ["udocker", "ps", "-a"], capture_output=True, text=True, check=False
+                ["udocker", "ps", "-a", "-o"],
+                capture_output=True,
+                text=True,
+                check=False,
             )
             if result.returncode != 0:
                 return None
 
             for line in result.stdout.strip().split("\n"):
-                if container_name in line:
-                    return container_name
+                if not line.startswith("lprett/mt5linux:"):
+                    continue
+                if f":{port}" in line or f"{port}/tcp" in line or f"{port}/udp" in line:
+                    parts = line.split()
+                    if parts:
+                        return parts[-1]
             return None
         except Exception:
             return None

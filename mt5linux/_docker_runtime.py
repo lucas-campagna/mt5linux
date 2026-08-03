@@ -49,11 +49,11 @@ class DockerRuntime(Runtime):
             return False
 
     def _get_container_by_port(self, port: int) -> Optional[str]:
-        """Check if a Docker container is running on the specified port by name."""
+        """Check if a Docker container is running on the specified port by image and port."""
         try:
-            container_name = f"mt5linux-{port}"
             result = subprocess.run(
-                ["docker", "ps", "--format", "{{.Names}}"],
+                ["docker", "ps", "--format",
+                    "{{.Names}}|{{.Ports}}|{{.Image}}"],
                 capture_output=True,
                 text=True,
                 check=False,
@@ -62,18 +62,28 @@ class DockerRuntime(Runtime):
                 return None
 
             for line in result.stdout.strip().split("\n"):
-                if line == container_name:
-                    return container_name
+                parts = line.split("|")
+                if len(parts) < 3:
+                    continue
+                name, ports, image = parts
+                if not image.startswith("lprett/mt5linux:"):
+                    continue
+                if (
+                    f":{port}" in ports
+                    or f"{port}/tcp" in ports
+                    or f"{port}/udp" in ports
+                ):
+                    return name
             return None
         except Exception:
             return None
 
     def _get_stopped_container_by_port(self, port: int) -> Optional[str]:
-        """Check if a Docker container is stopped on the specified port by name."""
+        """Check if a Docker container is stopped on the specified port by image and port."""
         try:
-            container_name = f"mt5linux-{port}"
             result = subprocess.run(
-                ["docker", "ps", "-a", "--format", "{{.Names}}"],
+                ["docker", "ps", "-a", "--format",
+                    "{{.Names}}|{{.Ports}}|{{.Image}}"],
                 capture_output=True,
                 text=True,
                 check=False,
@@ -82,8 +92,18 @@ class DockerRuntime(Runtime):
                 return None
 
             for line in result.stdout.strip().split("\n"):
-                if line == container_name:
-                    return container_name
+                parts = line.split("|")
+                if len(parts) < 3:
+                    continue
+                name, ports, image = parts
+                if not image.startswith("lprett/mt5linux:"):
+                    continue
+                if (
+                    f":{port}" in ports
+                    or f"{port}/tcp" in ports
+                    or f"{port}/udp" in ports
+                ):
+                    return name
             return None
         except Exception:
             return None
