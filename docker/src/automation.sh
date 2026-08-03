@@ -99,7 +99,7 @@ login_automation() {
 init_wine() {
   log_info "Initializing Wine..."
   wineboot -init >&2 2>/dev/null || true
-  sleep 2
+  while [ ! -d "$WIN_ROOT" ]; do sleep 0.5; done
 
-  [ ! -e $WIN_ROOT/server ] && mkfifo -m 666 $WIN_ROOT/server
+  mkfifo -m 666 $WIN_ROOT/server
 }
