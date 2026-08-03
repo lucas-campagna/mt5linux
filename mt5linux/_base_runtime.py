@@ -60,6 +60,20 @@ class Runtime(ABC):
         raise NotImplementedError(
             "Subclasses must implement _list_connection_files()")
 
+    @abstractmethod
+    def _is_controlled_container(self) -> bool:
+        """Check if this container was instantiated using this class or a child class."""
+        raise NotImplementedError(
+            "Subclasses must implement _is_controlled_container()"
+        )
+
+    @abstractmethod
+    def _create_controlled_container_file(self) -> None:
+        """Create the controlled container file inside the container."""
+        raise NotImplementedError(
+            "Subclasses must implement _create_controlled_container_file()"
+        )
+
     def __del__(self):
         if hasattr(self, "_name") and self._name:
             self._delete_connection_file()

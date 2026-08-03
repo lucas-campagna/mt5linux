@@ -185,6 +185,38 @@ class UdockerRuntime(Runtime):
             return []
         return [f for f in result.stdout.strip().split("\n") if f]
 
+    def _is_controlled_container(self) -> bool:
+        """Check if this container was instantiated using this class or a child class."""
+        result = subprocess.run(
+            [
+                "udocker",
+                "run",
+                "--exec-mode=PROOT",
+                self._name,
+                "/bin/bash",
+                "-c",
+                "[ -f /tmp/controlled_container ]",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        return result.returncode == 0
+
+    def _create_controlled_container_file(self) -> None:
+        """Create the controlled container file inside the container."""
+        subprocess.run(
+            "udocker",
+            [
+                "run",
+                "--exec-mode=PROOT",
+                self._name,
+                "/bin/bash",
+                "-c",
+                "touch /tmp/controlled_container",
+            ],
+            check=True,
+        )
+
     def _stop_container(self, name: str) -> bool:
         """Stop a container."""
         result = subprocess.run(
