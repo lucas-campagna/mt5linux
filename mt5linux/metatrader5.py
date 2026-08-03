@@ -1866,7 +1866,8 @@ class MetaTrader5(object):
 
             `CopyRates`, `copy_rates_from`, `copy_rates_range`, `copy_ticks_from`, `copy_ticks_range`
         """
-        code = f'mt5.copy_rates_from_pos("{symbol}",{timeframe},{start_pos},{count})'
+        code = f'mt5.copy_rates_from_pos("{symbol}",{timeframe},{
+            start_pos},{count})'
         return self._container.eval(code)
 
     def copy_rates_range(self, symbol, timeframe, date_from, date_to):
