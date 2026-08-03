@@ -172,9 +172,14 @@ class MetaTrader5(object):
 
             `shutdown`, `terminal_info`, `version`
         """
-        if self._search_on_init and "server" in kwargs:
-            self._container.ui.search_server(kwargs["server"])
         code = f"mt5.initialize(*{args},**{kwargs})"
+        if self._search_on_init and "server" in kwargs:
+            for _ in range(3):
+                try:
+                    self._container.ui.search_server(kwargs["server"])
+                    return self._container.eval(code)
+                except:
+                    continue
         return self._container.eval(code)
 
     def login(self, *args, **kwargs):
