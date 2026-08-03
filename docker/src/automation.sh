@@ -69,7 +69,7 @@ server_search_automation() {
       SEARCHED_SERVERS="${SEARCHED_SERVERS}${SERVER_NAME} "
     fi
   done
-  log_info "Should never reach!!!"
+  log_error "Should never reach!!!"
 }
 
 update_manager_automation() {
