@@ -17,13 +17,8 @@ RUN mkdir -p /tmp/mt5install && \
     XVFB_PID=$! && \
     sleep 2 && \
     WINEDLLOVERRIDES="mscoree=" DISPLAY=:99 WINEPREFIX=/opt/wineprefix wine64 /tmp/mt5install/mt5setup.exe /auto /path:"C:/MT5" && \
-    sleep 5 && \
+    timeout=120; while ! [ -d "/opt/wineprefix/drive_c/MT5/terminal64.exe" ] && [ $timeout -gt 0 ]; do sleep 1; timeout=$((timeout - 1)); done; \
     kill $XVFB_PID 2>/dev/null || true
-
-# Download mt5server.exe from GitHub releases
-RUN curl -s "https://api.github.com/repos/lucas-campagna/mt5linux/releases/latest" | \
-    jq -r '.assets[] | select(.name | contains("mt5server")) | .browser_download_url' | \
-    xargs -I {} curl -L -o /opt/wineprefix/drive_c/mt5server.exe {}
 
 # Build Go websockify from source
 RUN apk add --no-cache go git && \
@@ -39,13 +34,21 @@ RUN git clone --depth 1 --branch v1.7.0 https://github.com/novnc/noVNC.git /opt/
 RUN curl -s "https://api.github.com/repos/TheWaWaR/simple-http-server/releases/latest" | \
     jq -r '.assets[] | select((.name | contains("x86_64-unknown-linux-musl-simple")) and (.name | contains("sha") | not)) | .browser_download_url' | \
     xargs -I {} curl -L -o /opt/noVNC/http-server {}
+#
+# Download mt5server.exe from GitHub releases
+RUN curl -s "https://api.github.com/repos/lucas-campagna/mt5linux/releases/latest" | \
+    jq -r '.assets[] | select(.name | contains("mt5server")) | .browser_download_url' | \
+    xargs -I {} curl -L -o /opt/wineprefix/drive_c/mt5server.exe {}
 
-RUN rm -rf /opt/wineprefix/drive_c/users/root/AppData/Roaming/MetaQuotes \
-       /opt/wineprefix/drive_c/ProgramData/MetaQuotes \
-       /opt/wineprefix/drive_c/MT5/uninstall.exe \
-       /opt/wineprefix/drive_c/MT5/Profiles/Default/* \
-       /opt/wineprefix/drive_c/MT5/Bases/Default
-RUN tar czvf /opt.tar.gz /opt
+# RUN rm -rf /opt/wineprefix/drive_c/users/root/AppData/Roaming/MetaQuotes \
+#        /opt/wineprefix/drive_c/ProgramData/MetaQuotes \
+#        /opt/wineprefix/drive_c/MT5/uninstall.exe \
+#        /opt/wineprefix/drive_c/MT5/Profiles/Default/* \
+#        /opt/wineprefix/drive_c/MT5/Bases/Default
+RUN cd /opt/wineprefix/drive_c/MT5 && \
+    rm -rf uninstall.exe Profiles/Default/* Bases/Default && \
+    tar czvf /mt5.tar.gz * && \
+    tar czvf /opt.tar.gz /opt/websockify /opt/noVNC
 
 # Runtime stage - Minimal Alpine image with Wine + MT5
 FROM alpine:3.20
@@ -59,10 +62,9 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-COPY --from=builder /opt.tar.gz /app
+COPY --from=builder /mt5.tar.gz /opt.tar.gz /opt/wineprefix/drive_c/mt5server.exe /app
 COPY src/ /app/src/
 RUN chmod +x /app/src/*.sh
-RUN rm -rf /usr/lib/wine/i386-windows
 
 ENV NOVNC_PORT=5901
 ENV NOVNC_PAGE_PORT=8080

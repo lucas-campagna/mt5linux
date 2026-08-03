@@ -4,8 +4,23 @@ set -e
 server_search_automation() {
   INPUT_ELEMENT="230 230"
   CANCEL_BUTTON="800 635"
-  FILE_TOP_MENU_BUTTON="21 41"
-  OPEN_AN_ACCOUNT_BUTTON_FILE_FLOAT_MENU="82 321"
+  # FILE_TOP_MENU_BUTTON="21 41"
+  # OPEN_AN_ACCOUNT_BUTTON_FILE_FLOAT_MENU="82 321"
+  open_search_server_window() {
+    while true; do
+      WINDOW_ID=$(xdotool search --classname terminal64.exe 2>/dev/null | head -n 1)
+      [ -n "$WINDOW_ID" ] && break
+      sleep 0.1
+    done
+    xdotool set_window $WINDOW_ID key Alt f a
+  }
+
+  wait_teminal64_open() {
+    while true; do
+      xdotool search --onlyvisible --classname "terminal64.exe" 2>/dev/null && return 0
+      sleep 1
+    done
+  }
 
   is_open_search_server_window() {
     for WINDOW_ID in $(xdotool search --onlyvisible --classname "terminal64.exe" 2>/dev/null); do
@@ -21,25 +36,40 @@ server_search_automation() {
     SERVER_NAME=$1
     [ -z "$SERVER_NAME" ] && return 1
     if ! is_open_search_server_window >/dev/null; then
-      xdotool mousemove $FILE_TOP_MENU_BUTTON click 1
-      xdotool mousemove $OPEN_AN_ACCOUNT_BUTTON_FILE_FLOAT_MENU click 1
+      open_search_server_window
+      local timeout=30
+      local start_time=$(date +%s)
       while ! is_open_search_server_window >/dev/null; do
+        if [ $(($(date +%s) - start_time)) -ge $timeout ]; then
+          log_info "Timeout waiting for search server window, retrying..."
+          open_search_server_window
+          start_time=$(date +%s)
+        fi
         sleep 0.1
       done
     fi
+    log_info "Server search: typing $SERVER_NAME"
     xdotool mousemove $INPUT_ELEMENT click 1 type "$SERVER_NAME"
     xdotool key Enter
+    sleep 1
     xdotool mousemove $CANCEL_BUTTON click 1
   }
 
+  SEARCHED_SERVERS=""
+  wait_teminal64_open
+
+  log_info "Starting server search loop"
   while true; do
     if [ -p $WIN_ROOT/server ]; then
       SERVER_NAME=$(cat $WIN_ROOT/server)
       [ -z "$SERVER_NAME" ] && continue
-      echo "Server search: typing $SERVER_NAME"
+      [[ "$SEARCHED_SERVERS" == *"$SERVER_NAME"* ]] && continue
+      log_info calling search_server_window...
       search_server_window $SERVER_NAME
+      SEARCHED_SERVERS="${SEARCHED_SERVERS}${SERVER_NAME} "
     fi
   done
+  log_info "Should never reach!!!"
 }
 
 update_manager_automation() {
@@ -67,7 +97,7 @@ login_automation() {
 }
 
 init_wine() {
-  echo "Initializing Wine..."
+  log_info "Initializing Wine..."
   wineboot -init >&2 2>/dev/null || true
   sleep 2
 

@@ -13,6 +13,7 @@ dependencies = [
     "numpy",
     "plumbum==1.7.0",
     "pyparsing>=3.1.0,<4",
+    "python-dotenv",
     "rpyc>=6.0.0,<7",
 ]
 

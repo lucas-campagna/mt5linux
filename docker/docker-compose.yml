@@ -1,8 +1,5 @@
 services:
   mt5linux:
-    # build:
-    #   context: ..
-    #   dockerfile: docker/Dockerfile
     image: lprett/mt5linux:local
     container_name: mt5linux
     restart: unless-stopped
