@@ -18,7 +18,8 @@ class UdockerRuntime(Runtime):
 
     def __init__(self):
         if not _is_udocker_available():
-            raise RuntimeError("Udocker is not available. Please install udocker.")
+            raise RuntimeError(
+                "Udocker is not available. Please install udocker.")
         self._runtime_name = "udocker"
         super().__init__()
 
@@ -181,12 +182,14 @@ class UdockerRuntime(Runtime):
 
     def _remove_container(self, name: str) -> bool:
         """Remove a container."""
-        result = subprocess.run(["udocker", "rm", name], capture_output=True, text=True)
+        result = subprocess.run(["udocker", "rm", name],
+                                capture_output=True, text=True)
         return result.returncode == 0
 
     def _get_container_status(self, name: str) -> str:
         """Get the status of a container."""
-        result = subprocess.run(["udocker", "ps", "-a"], capture_output=True, text=True)
+        result = subprocess.run(["udocker", "ps", "-a"],
+                                capture_output=True, text=True)
         if result.returncode != 0:
             return "not found"
         for line in result.stdout.strip().split("\n"):

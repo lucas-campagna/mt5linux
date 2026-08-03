@@ -20,7 +20,8 @@ class DockerRuntime(Runtime):
 
     def __init__(self):
         if not _is_docker_available():
-            raise RuntimeError("Docker is not available. Please install Docker.")
+            raise RuntimeError(
+                "Docker is not available. Please install Docker.")
         self._runtime_name = "docker"
         super().__init__()
 
@@ -160,7 +161,8 @@ class DockerRuntime(Runtime):
 
     def _remove_container(self, name: str) -> bool:
         """Remove a container."""
-        result = subprocess.run(["docker", "rm", name], capture_output=True, text=True)
+        result = subprocess.run(["docker", "rm", name],
+                                capture_output=True, text=True)
         return result.returncode == 0
 
     def _get_container_status(self, name: str) -> str:
