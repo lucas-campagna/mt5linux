@@ -51,7 +51,7 @@ server_search_automation() {
     log_info "Server search: typing $SERVER_NAME"
     xdotool mousemove $INPUT_ELEMENT click 1 type "$SERVER_NAME"
     xdotool key Enter
-    sleep 1
+    sleep 3
     xdotool mousemove $CANCEL_BUTTON click 1
   }
 
