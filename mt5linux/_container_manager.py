@@ -47,7 +47,7 @@ class ContainerManager:
         self._engine = engine
         self._host = host
         self._timeout = timeout
-        self._image = image
+        self._image = f"lprett/mt5linux:{image}"
         self._mt5_login = mt5_login
         self._mt5_password = mt5_password
         self._mt5_server = mt5_server
@@ -170,7 +170,7 @@ class ContainerManager:
     def run(
         self,
         port: int,
-        image: str = "lprett/mt5linux:local",
+        image: str = "local",
         mt5_login: Optional[str] = None,
         mt5_password: Optional[str] = None,
         mt5_server: Optional[str] = None,
@@ -182,7 +182,7 @@ class ContainerManager:
 
         Args:
             port: The port for RPyC connection
-            image: Docker image to use
+            image: Docker image tag to use (default: 'local')
             mt5_login: Optional MT5 login
             mt5_password: Optional MT5 password
             mt5_server: Optional MT5 server
@@ -195,7 +195,7 @@ class ContainerManager:
         return self._runtime.run(
             port=port,
             name=self._name,
-            image=image,
+            image=f"lprett/mt5linux:{image}",
             mt5_login=mt5_login,
             mt5_password=mt5_password,
             mt5_server=mt5_server,

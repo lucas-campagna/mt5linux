@@ -10,7 +10,7 @@ class MetaTrader5(object):
         port=18812,
         timeout=300,
         engine="auto",
-        image: str = "lprett/mt5linux:latest",
+        image: str = "23",
         mt5_login: str = None,
         mt5_password: str = None,
         mt5_server: str = None,
@@ -1866,8 +1866,7 @@ class MetaTrader5(object):
 
             `CopyRates`, `copy_rates_from`, `copy_rates_range`, `copy_ticks_from`, `copy_ticks_range`
         """
-        code = f'mt5.copy_rates_from_pos("{symbol}",{timeframe},{
-            start_pos},{count})'
+        code = f'mt5.copy_rates_from_pos("{symbol}",{timeframe},{start_pos},{count})'
         return self._container.eval(code)
 
     def copy_rates_range(self, symbol, timeframe, date_from, date_to):
