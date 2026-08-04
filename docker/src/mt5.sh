@@ -11,7 +11,7 @@ start_rpyc_server() {
 }
 
 start_mt5() {
-  wine64 C:/MT5/terminal64.exe /portable &
+  wine64 C:/MT5/terminal64.exe /portable /config:C:/MT5/common.ini &
   MT5_PID=$!
   wait_for_terminal64
 }
