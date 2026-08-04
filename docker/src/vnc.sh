@@ -21,7 +21,7 @@ start_websockify() {
 
 start_novnc_http() {
   log_info "Starting noVNC http server on port $NOVNC_PAGE_PORT..."
-  echo "{\"port\": $NOVNC_PORT, \"host\": \"localhost\"}" >/opt/noVNC/defaults.json
+  echo "{\"port\": $NOVNC_PAGE_PORT, \"host\": \"localhost\"}" >/opt/noVNC/defaults.json
   ln -sf /opt/noVNC/vnc.html /opt/noVNC/index.html
   (cd /opt/noVNC && ./http-server -ip $NOVNC_PAGE_PORT >&2 2>/dev/null) &
   NOVNC_PAGE_PID=$!
