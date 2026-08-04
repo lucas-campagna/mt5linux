@@ -206,6 +206,7 @@ class Runtime(ABC):
             raise RuntimeError(f"Failed to start stopped container {stopped}")
 
         self._ui_port = ui_port if ui_port else find_available_port(8080, host)
+        self._ui_host = ui_host
         self._port = find_available_port(port, host)
         self._name = f"mt5linux-{self._port}"
 
@@ -223,7 +224,7 @@ class Runtime(ABC):
         if ui_password:
             env_vars.append(f"UI_PASSWORD={ui_password}")
         env_vars.append(f"NOVNC_PORT={self._ui_port}")
-        env_vars.append(f"NOVNC_HOST={ui_host}")
+        env_vars.append(f"NOVNC_HOST={self._ui_host}")
 
         ports = {
             f"{self._ui_port}:8080": None,
