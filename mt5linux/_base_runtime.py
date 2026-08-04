@@ -243,7 +243,7 @@ class Runtime(ABC):
         self._create_controlled_container_file()
 
         print(f"Container '{self._name}' started")
-        print(f"UI: http://{host}:{self._ui_port}")
+        print(f"UI: http://{self._ui_host}:{self._ui_port}")
         print(f"VNC: {host}:{vnc_port} (internal)")
         print(f"MT5: port={self._port}")
 
