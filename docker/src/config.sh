@@ -8,6 +8,9 @@ apply_mt5_config() {
 
   cat >/tmp/common_ini.txt <<'EOFCOMMON'
 [Common]
+Login=
+Server=
+Password=
 NewsEnable=0
 SoundEnable=0
 MailEnable=0
@@ -104,6 +107,16 @@ Visible=0
 [BarState_Bar15]
 Visible=0
 EOFTERMINAL
+
+  if [ -n "$MT5_LOGIN" ]; then
+    sed -i "s/^Login=$/Login=$MT5_LOGIN/" /tmp/common_ini.txt
+  fi
+  if [ -n "$MT5_SERVER" ]; then
+    sed -i "s/^Server=$/Server=$MT5_SERVER/" /tmp/common_ini.txt
+  fi
+  if [ -n "$MT5_PASSWORD" ]; then
+    sed -i "s/^Password=$/Password=$MT5_PASSWORD/" /tmp/common_ini.txt
+  fi
 
   iconv -f UTF-8 -t UTF-16LE /tmp/common_ini.txt >"$common_ini"
   iconv -f UTF-8 -t UTF-16LE /tmp/terminal_ini.txt >"$terminal_ini"
