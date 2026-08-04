@@ -1,6 +1,7 @@
 #!/bin/sh
 set -e
 
+. /app/src/log.sh
 . /app/src/env.sh
 . /app/src/setup.sh
 . /app/src/xvfb.sh
@@ -40,7 +41,7 @@ start_watchdog
 echo ""
 echo "All services started:"
 echo "  - Xvfb :0 (PID: $XVFB_PID)"
-echo "  - x11vnc :$VNC_PORT (PID: $X11VNC_PID)"
+echo "  - x11vnc :$VNC_PORT (PID: $X11VNC_PID) ${UI_PASSWORD:+[password protected]}"
 echo "  - noVNC :$NOVNC_PORT (PID: $NOVNC_PID)"
 echo "  - noVNC page :$NOVNC_PAGE_PORT (PID: $NOVNC_PAGE_PID)"
 echo "  - MT5 (PID: $MT5_PID)"

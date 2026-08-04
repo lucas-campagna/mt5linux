@@ -125,6 +125,31 @@ mt5.terminal_info()
 mt5.shutdown()
 ```
 
+## Udocker Fallback
+
+If Docker is not available, the library automatically falls back to [udocker](https://github.com/indigo-dc/udocker), a lightweight wrapper that can run containers without Docker daemon privileges.
+
+When using the library in `auto` mode (default), it will:
+1. Try to use Docker if available
+2. Fall back to udocker if Docker is not available
+
+You can also explicitly specify which engine to use:
+
+```python
+from mt5linux import MetaTrader5
+
+mt5 = MetaTrader5(engine="docker")   # Force Docker
+mt5 = MetaTrader5(engine="udocker")  # Force udocker
+mt5 = MetaTrader5(engine="auto")     # Auto-detect (default)
+```
+
+For udocker usage, install it first:
+```bash
+curl https://raw.githubusercontent.com/indigo-dc/udocker/master/udocker.py -o udocker
+chmod +x udocker
+sudo mv udocker /usr/local/bin/
+```
+
 ## Stop
 
 ```bash

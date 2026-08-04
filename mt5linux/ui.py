@@ -1,4 +1,5 @@
 import logging
+import time
 
 
 class UI:
@@ -10,3 +11,4 @@ class UI:
             logging.error("Server not provided")
             return
         self.__conn.execute(f'open("C:\\\\server", "w").write("{server}")')
+        time.sleep(1)

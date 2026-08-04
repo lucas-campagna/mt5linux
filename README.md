@@ -20,37 +20,93 @@ For an explanation of who should use mt5linux and why, see [Motivation and Use C
 
 ## Docker
 
-Alternatively, you can run this library using Docker, see the [docs](https://github.com/lucas-campagna/mt5linux/tree/master/docker#docker).
+Alternatively, you can run this library using Docker, see the [Docker docs](https://github.com/lucas-campagna/mt5linux/tree/master/docker#docker).
 
 ## Usage
 
-1. Open MetaTrader5.
+### Option 1: Library-Managed Containers (Recommended for Docker)
+
+The library can automatically start and stop Docker containers for you:
+
+```python
+from mt5linux import MetaTrader5
+
+mt5 = MetaTrader5(
+    host="localhost",
+    mt5_login=12345678,
+    mt5_password="your_password",
+    mt5_server="Broker-Server",
+    engine="auto",        # 'auto', 'docker', or 'udocker'
+    image_tag="latest",   # Docker image tag
+    ui_port=8080,         # noVNC port (auto-selected if None)
+    ui_password=None,     # noVNC password
+    vnc_port=5901,        # VNC port
+)
+mt5.initialize()
+mt5.terminal_info()
+mt5.shutdown()
+
+# Container is automatically stopped when mt5 is deleted
+```
+
+### Option 2: Manual Docker
+
+Run Docker manually with `docker compose up -d`, then connect:
+
+```python
+from mt5linux import MetaTrader5
+
+mt5 = MetaTrader5(host="localhost", port=18812)
+mt5.initialize()
+mt5.terminal_info()
+mt5.shutdown()
+```
+
+### Option 3: Standalone Server (Linux with Wine)
+
+1. Open MetaTrader5 on Windows/Wine.
 
 2. Start the server:
 
-   - **Linux** (with Wine):
-      ```bash
-      wine mt5server.exe [-p/--port <port>]
-      ```
+   ```bash
+   wine mt5server.exe [-p/--port <port>]
+   ```
 
-    The default port is `18812`. The server accepts various options. View them with:
+   The default port is `18812`. View all options with:
    ```bash
    wine mt5server.exe --help
    ```
 
-3. On the **Linux** side, use the library as usual:
+3. Connect from Linux Python:
 
    ```python
    from mt5linux import MetaTrader5
 
-    mt5 = MetaTrader5()
-    mt5.initialize(server=<server_ip>, login=<login_id>, password=<password>)
-    # Or simply: mt5.initialize() to auto-search for the server
+   mt5 = MetaTrader5()
+   mt5.initialize(server=<server_ip>, login=<login_id>, password=<password>)
+   # Or simply: mt5.initialize() to auto-search for the server
    mt5.terminal_info()
    mt5.shutdown()
    ```
 
-   For full API documentation, see the [official MetaTrader5 Python integration](https://www.mql5.com/en/docs/integration/python_metatrader5/).
+### Accessing Container Properties
+
+When using library-managed containers, access the container manager via the `container` property:
+
+```python
+mt5 = MetaTrader5(mt5_login=12345678, mt5_password="password")
+
+print(mt5.container.name)        # Container name
+print(mt5.container.status())   # 'running', 'exited', etc.
+print(mt5.container.ui_port)     # noVNC port
+print(mt5.container.is_running())  # True/False
+
+mt5.container.stop()   # Stop container
+mt5.container.start()  # Start container (if using controlled containers)
+mt5.container.remove() # Remove container
+```
+
+For full API documentation, see the [official MetaTrader5 Python integration](https://www.mql5.com/en/docs/integration/python_metatrader5/).
 
 ## Thanks
 
