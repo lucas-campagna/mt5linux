@@ -24,6 +24,7 @@ class ContainerManager:
         mt5_server: str = None,
         ui_port: int = None,
         ui_password: str = None,
+        ui_host: str = "localhost",
         vnc_port: int = 5901,
     ):
         """
@@ -42,6 +43,7 @@ class ContainerManager:
             mt5_server: MT5 trade server for auto-login
             ui_port: UI (noVNC) port. If not provided, finds first available.
             ui_password: UI password for the container. Default = None (no password)
+            ui_host: UI (noVNC) host. Default = 'localhost'
             vnc_port: VNC port. Default = 5901
         """
         self._engine = engine
@@ -52,6 +54,7 @@ class ContainerManager:
         self._mt5_password = mt5_password
         self._mt5_server = mt5_server
         self._ui_password = ui_password
+        self._ui_host = ui_host
         self._vnc_port = vnc_port
 
         self._runtime = create_runtime(engine)
@@ -65,6 +68,7 @@ class ContainerManager:
             mt5_server=mt5_server,
             ui_port=ui_port,
             ui_password=ui_password,
+            ui_host=ui_host,
             vnc_port=vnc_port,
         )
 
