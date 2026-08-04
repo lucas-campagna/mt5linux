@@ -38,7 +38,8 @@ mt5 = MetaTrader5(
     mt5_server="Broker-Server",
     engine="auto",        # 'auto', 'docker', or 'udocker'
     image_tag="latest",   # Docker image tag
-    ui_port=8080,         # noVNC port (auto-selected if None)
+    ui_port=8080,         # noVNC http port (auto-selected if None)
+    ui_host="localhost",  # noVNC host for the UI URL
     ui_password=None,     # noVNC password
     vnc_port=5901,        # VNC port
 )
