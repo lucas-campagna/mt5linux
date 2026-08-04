@@ -16,6 +16,7 @@ class MetaTrader5(object):
         mt5_server: str = None,
         ui_port: int = None,
         ui_password: str = None,
+        ui_host: str = "localhost",
         vnc_port: int = 5901,
         search_on_init: bool = True,
     ):
@@ -47,6 +48,8 @@ class MetaTrader5(object):
                 Default = None (auto-select)
             ui_password: str, optional
                 UI password for the container. Default = None (no password)
+            ui_host: str
+                UI (noVNC) host. Default = localhost
             vnc_port: int
                 VNC port. Default = 5901
             search_on_init: bool
@@ -64,6 +67,7 @@ class MetaTrader5(object):
             mt5_server=mt5_server,
             ui_port=ui_port,
             ui_password=ui_password,
+            ui_host=ui_host,
             vnc_port=vnc_port,
         )
 
@@ -1871,8 +1875,7 @@ class MetaTrader5(object):
 
             `CopyRates`, `copy_rates_from`, `copy_rates_range`, `copy_ticks_from`, `copy_ticks_range`
         """
-        code = f'mt5.copy_rates_from_pos("{symbol}",{timeframe},{
-            start_pos},{count})'
+        code = f'mt5.copy_rates_from_pos("{symbol}",{timeframe},{start_pos},{count})'
         return self._container.eval(code)
 
     def copy_rates_range(self, symbol, timeframe, date_from, date_to):

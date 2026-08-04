@@ -19,7 +19,8 @@ Or run directly with docker:
 ```bash
 docker run -d \
   --name mt5linux \
-  -p 6081:6081 \
+  -p 8080:8080 \
+  -p 5901:5901 \
   -p 18812:18812 \
   -e MT5_HOST=0.0.0.0 \
   -e VNC_PASSWORD=password \
@@ -37,7 +38,7 @@ docker run -d \
 docker build -t mt5linux docker/
 docker run -d \
   --name mt5linux \
-  -p 6081:6081 \
+  -p 8080:8080 \
   -p 18812:18812 \
   -e MT5_HOST=0.0.0.0 \
   -e VNC_PASSWORD=password \
@@ -49,7 +50,7 @@ docker run -d \
 
 ## Access
 
-- **VNC (noVNC)**: http://localhost:6081
+- **noVNC**: http://localhost:8080
 - **MT5 Server**: localhost:18812
 
 ## Configuration
@@ -63,6 +64,7 @@ Environment variables can be configured via `.env` file or directly in `docker-c
 | `MT5_LOGIN`      | (none)     | MT5 account number for autologin                 |
 | `MT5_PASSWORD`   | (none)     | MT5 password for autologin                       |
 | `MT5_SERVER`     | (none)     | MT5 server name for autologin                    |
+| `NOVNC_HOST`     | `localhost`| Host for noVNC UI URL                            |
 
 ## Autologin
 
@@ -71,7 +73,8 @@ To automatically login to an MT5 account when the container starts, provide the 
 ```bash
 docker run -d \
   --name mt5linux \
-  -p 6081:6081 \
+  -p 8080:8080 \
+  -p 5901:5901 \
   -p 18812:18812 \
   -e MT5_HOST=0.0.0.0 \
   -e VNC_PASSWORD=password \
@@ -89,6 +92,7 @@ VNC_PASSWORD=your_secure_password
 MT5_LOGIN=12345678
 MT5_PASSWORD=your_password
 MT5_SERVER=Broker-Server
+NOVNC_HOST=localhost
 ```
 
 > Note: If credentials are not provided, the MT5 terminal will start without auto-login and you can connect manually via the Python API.
@@ -110,6 +114,7 @@ VNC_PASSWORD=your_secure_password
 MT5_LOGIN=12345678
 MT5_PASSWORD=your_password
 MT5_SERVER=Broker-Server
+NOVNC_HOST=localhost
 ```
 
 ## Connect from Linux Python
