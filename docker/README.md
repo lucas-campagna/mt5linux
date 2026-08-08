@@ -64,6 +64,7 @@ Environment variables can be configured via `.env` file or directly in `docker-c
 | `MT5_LOGIN`      | (none)     | MT5 account number for autologin                 |
 | `MT5_PASSWORD`   | (none)     | MT5 password for autologin                       |
 | `MT5_SERVER`     | (none)     | MT5 server name for autologin                    |
+| `MT5_ENABLE_ALGO`| `0`        | Set to `1` to allow algorithmic trading (`order_send`); off by default |
 | `NOVNC_HOST`     | `localhost`| Host for noVNC UI URL                            |
 
 ## Autologin
