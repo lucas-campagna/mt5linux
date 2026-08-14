@@ -16,7 +16,7 @@ class MetaTrader5(object):
         mt5_server: str = None,
         ui_port: int = None,
         ui_password: str = None,
-        ui_host: str = "localhost",
+        ui_host: str = "0.0.0.0",
         vnc_port: int = 5901,
         search_on_init: bool = True,
     ):

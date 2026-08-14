@@ -167,7 +167,7 @@ class Runtime(ABC):
         mt5_server: Optional[str] = None,
         ui_port: int = None,
         ui_password: str = None,
-        ui_host: str = "localhost",
+        ui_host: str = "0.0.0.0",
         vnc_port: int = 5901,
     ):
         """
