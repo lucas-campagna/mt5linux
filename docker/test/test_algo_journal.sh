@@ -43,6 +43,11 @@ check "last event now enabled" "enabled" "$got"
 rm -f "$ALGO_LOG_DIR"/*.log
 check "empty log dir: count is 0" "0" "$(_algo_events)"
 
+# 5. journal exists but has no automated-trading line yet -> a single 0 (grep -c
+# prints 0 AND exits 1; a second 0 from a fallback would break `[ -gt ]`).
+printf '0\t14:00:00.000\tTerminal\tMetaTrader 5 build 4200 started\n' | utf16 > "$ALGO_LOG_DIR/20260808.log"
+check "journal without events: count is a single 0" "0" "$(_algo_events)"
+
 rm -rf "$MT5"
 echo
 if [ "$fail" = 0 ]; then echo "all assertions passed — UTF-16 journal verification correct"; else exit 1; fi

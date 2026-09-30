@@ -28,7 +28,7 @@ _algo_journal() { ls -t "$ALGO_LOG_DIR"/*.log 2>/dev/null | head -n1; }
 # reliable verification.
 _algo_events() {
   f=$(_algo_journal); [ -z "$f" ] && { echo 0; return; }
-  tr -d '\000' < "$f" | grep -c "automated trading is" 2>/dev/null || echo 0
+  tr -d '\000' < "$f" | grep -c "automated trading is" 2>/dev/null || true
 }
 
 # The most recent enable/disable line (NULs stripped), for the enabled/disabled check.
