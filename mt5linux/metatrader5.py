@@ -19,6 +19,7 @@ class MetaTrader5(object):
         ui_host: str = "0.0.0.0",
         vnc_port: int = 5901,
         search_on_init: bool = True,
+        materialized: bool = True,
     ):
         """
         MetaTrader5 client for Linux.
@@ -54,8 +55,17 @@ class MetaTrader5(object):
                 VNC port. Default = 5901
             search_on_init: bool
                 Whether to search for server on initialize. Default = True
+            materialized: bool
+                Whether to reconstruct MT5 result objects into typed dataclasses
+                from mt5linux.types (TerminalInfo, AccountInfo, SymbolInfo, etc.).
+                When True (default), results are returned as typed frozen dataclasses
+                with _asdict() / _fields compatibility, solving issue #57
+                (RPyC cannot pickle MT5 C-extension namedtuples). When False,
+                results are returned as plain dicts / netrefs — the old behaviour
+                before issue #57 was addressed. Default = True
         """
         self._search_on_init = search_on_init
+        self._materialized = materialized
         self._container = ContainerManager(
             engine=engine,
             host=host,
@@ -69,6 +79,7 @@ class MetaTrader5(object):
             ui_password=ui_password,
             ui_host=ui_host,
             vnc_port=vnc_port,
+            materialized=materialized,
         )
 
         self._container.execute("import sys; sys.path.append('C:\\\\mt5libs')")
