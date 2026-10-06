@@ -101,5 +101,5 @@ init_wine() {
   wineboot -init >&2 2>/dev/null || true
   while [ ! -d "$WIN_ROOT" ]; do sleep 0.5; done
 
-  mkfifo -m 666 $WIN_ROOT/server
+  [-e $WIN_ROOT/server ] || mkfifo -m 666 $WIN_ROOT/server
 }
