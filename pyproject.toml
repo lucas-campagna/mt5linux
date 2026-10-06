@@ -25,4 +25,14 @@ include = ["mt5linux*"]
 Homepage = "https://github.com/lucas-campagna/mt5linux"
 
 [project.optional-dependencies]
-dev = ["build", "twine"]
+dev = ["build", "twine", "pytest", "ruff"]
+
+[tool.pytest.ini_options]
+markers = [
+    "e2e: end-to-end tests that need a live MetaTrader 5 server (see tests/e2e)",
+    "trading: e2e tests that place real orders (opt-in via MT5_E2E_ALLOW_ORDER_SEND=1)",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Best-effort cleanup in e2e teardowns must not mask test results.
+"tests/e2e/*" = ["S110", "BLE001"]

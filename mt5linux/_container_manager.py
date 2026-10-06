@@ -1,8 +1,27 @@
-import rpyc
-from typing import Optional, Literal
+from pickle import PicklingError
+from typing import Literal
 
-from mt5linux.ui import UI
+import rpyc
+
 from mt5linux._runtime import create_runtime
+from mt5linux.types import MT5_TYPE_TAG, materialize
+from mt5linux.ui import UI
+
+HELPER_CODE = '''
+def _mt5linux_to_plain(obj):
+    """Convert MT5 result objects (recursively) into pickle-friendly
+    structures, tagging each with its original class name."""
+    if hasattr(obj, "_asdict"):
+        plain = {"__TAG__": type(obj).__name__}
+        for key, value in obj._asdict().items():
+            plain[key] = _mt5linux_to_plain(value)
+        return plain
+    if isinstance(obj, dict):
+        return {key: _mt5linux_to_plain(value) for key, value in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return type(obj)(_mt5linux_to_plain(item) for item in obj)
+    return obj
+'''.replace("__TAG__", MT5_TYPE_TAG)
 
 
 class ContainerManager:
@@ -24,8 +43,9 @@ class ContainerManager:
         mt5_server: str = None,
         ui_port: int = None,
         ui_password: str = None,
-        ui_host: str = "localhost",
+        ui_host: str = "0.0.0.0",
         vnc_port: int = 5901,
+        materialized: bool = True,
         enable_algo: bool = False,
     ):
         """
@@ -44,8 +64,13 @@ class ContainerManager:
             mt5_server: MT5 trade server for auto-login
             ui_port: UI (noVNC) port. If not provided, finds first available.
             ui_password: UI password for the container. Default = None (no password)
-            ui_host: UI (noVNC) host. Default = 'localhost'
+            ui_host: UI (noVNC) host. Default = '0.0.0.0'
             vnc_port: VNC port. Default = 5901
+            materialized: bool
+                When True (default), MT5 result objects are reconstructed into
+                typed frozen dataclasses from mt5linux.types, solving issue #57.
+                When False, results are returned as plain dicts / netrefs
+                without any reconstruction.
             enable_algo: Allow algorithmic trading (order_send). Default = False
                 (matches the MT5_ENABLE_ALGO env var; overrides it when set here)
         """
@@ -59,6 +84,7 @@ class ContainerManager:
         self._ui_password = ui_password
         self._ui_host = ui_host
         self._vnc_port = vnc_port
+        self._materialized = materialized
         self._enable_algo = enable_algo
 
         self._runtime = create_runtime(engine)
@@ -79,6 +105,7 @@ class ContainerManager:
 
         self._ui = None
         self.__conn = self._connect(timeout=self._timeout)
+        self.__to_plain = self._install_conversion_helper() if materialized else None
 
     def _connect(self, timeout: int = 60, retry_interval: int = 2) -> rpyc.Connection:
         """
@@ -116,9 +143,31 @@ class ContainerManager:
             f"after {timeout} seconds. Last error: {last_error}"
         )
 
+    def _install_conversion_helper(self):
+        """Install the server-side result conversion helper (issue #57).
+
+        The helper converts MetaTrader5 result objects into plain tagged
+        structures in a single round trip, so large results (e.g.
+        symbols_get()) do not require per-item requests. Returns the helper
+        as a netref, or None when the server does not accept it.
+        """
+        try:
+            self.__conn.execute(HELPER_CODE)
+            return self.__conn.eval("_mt5linux_to_plain")
+        except Exception:  # noqa: BLE001
+            return None
+
     def eval(self, code: str):
         """
-        Evaluate code in the container and return the result using rpyc.classic.obtain.
+        Evaluate code in the container and return the result.
+
+        When materialized=True (default), results that cannot cross RPyC
+        (MetaTrader5 C-extension result objects, issue #57) are converted
+        server-side into plain tagged structures and reconstructed into the
+        typed classes from mt5linux.types.
+
+        When materialized=False, results are returned as-is from obtain()
+        (plain dicts / netrefs — the pre-fix behaviour).
 
         Args:
             code: Python code to evaluate
@@ -126,7 +175,19 @@ class ContainerManager:
         Returns:
             Result of the evaluation
         """
-        return rpyc.classic.obtain(self.__conn.eval(code))
+        raw = self.__conn.eval(code)
+        try:
+            return rpyc.classic.obtain(raw)
+        except PicklingError:
+            if not self._materialized:
+                raise
+        if self.__to_plain is None:
+            return raw
+        try:
+            plain = rpyc.classic.obtain(self.__to_plain(raw))
+        except Exception:  # noqa: BLE001
+            return raw
+        return materialize(plain)
 
     def execute(self, code: str):
         """
@@ -143,7 +204,7 @@ class ContainerManager:
         return self._engine
 
     @property
-    def runtime(self) -> Optional[Literal["docker", "udocker"]]:
+    def runtime(self) -> Literal["docker", "udocker"] | None:
         """Get the actual runtime being used ('docker' or 'udocker')."""
         return self._runtime.name
 
@@ -172,7 +233,7 @@ class ContainerManager:
         """Get control over the UI."""
         return self._ui
 
-    def get_runtime(self) -> Optional[Literal["docker", "udocker"]]:
+    def get_runtime(self) -> Literal["docker", "udocker"] | None:
         """Get the container runtime."""
         return self._runtime
 
@@ -180,9 +241,9 @@ class ContainerManager:
         self,
         port: int,
         image_tag: str = "latest",
-        mt5_login: Optional[str] = None,
-        mt5_password: Optional[str] = None,
-        mt5_server: Optional[str] = None,
+        mt5_login: str | None = None,
+        mt5_password: str | None = None,
+        mt5_server: str | None = None,
         vnc_password: str = None,
         novnc_port: int = None,
         enable_algo: bool = False,

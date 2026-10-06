@@ -65,7 +65,7 @@ Environment variables can be configured via `.env` file or directly in `docker-c
 | `MT5_PASSWORD`   | (none)     | MT5 password for autologin                       |
 | `MT5_SERVER`     | (none)     | MT5 server name for autologin                    |
 | `MT5_ENABLE_ALGO`| `0`        | Set to `1` to allow algorithmic trading (`order_send`); off by default |
-| `NOVNC_HOST`     | `localhost`| Host for noVNC UI URL                            |
+| `NOVNC_HOST`     | `0.0.0.0`| Host for noVNC UI URL                            |
 
 ## Autologin
 
@@ -93,7 +93,7 @@ VNC_PASSWORD=your_secure_password
 MT5_LOGIN=12345678
 MT5_PASSWORD=your_password
 MT5_SERVER=Broker-Server
-NOVNC_HOST=localhost
+NOVNC_HOST=0.0.0.0
 ```
 
 > Note: If credentials are not provided, the MT5 terminal will start without auto-login and you can connect manually via the Python API.
@@ -115,7 +115,7 @@ VNC_PASSWORD=your_secure_password
 MT5_LOGIN=12345678
 MT5_PASSWORD=your_password
 MT5_SERVER=Broker-Server
-NOVNC_HOST=localhost
+NOVNC_HOST=0.0.0.0
 ```
 
 ## Connect from Linux Python
