@@ -341,7 +341,7 @@ class ContainerManager:
         """
         return self._runtime.run(
             port=port,
-            name=self._name,
+            name=self._runtime.container_name,
             image=f"lprett/mt5linux:{image_tag}",
             mt5_login=mt5_login,
             mt5_password=mt5_password,
@@ -357,7 +357,7 @@ class ContainerManager:
         Returns:
             True if stopped successfully, False otherwise
         """
-        return self._runtime.stop(self._name)
+        return self._runtime.stop(self._runtime.container_name)
 
     def remove(self) -> bool:
         """
@@ -366,7 +366,7 @@ class ContainerManager:
         Returns:
             True if removed successfully, False otherwise
         """
-        return self._runtime.remove(self._name)
+        return self._runtime.remove(self._runtime.container_name)
 
     def status(self) -> str:
         """
@@ -375,7 +375,7 @@ class ContainerManager:
         Returns:
             Container status: 'running', 'exited', 'not found', etc.
         """
-        return self._runtime.status(self._name)
+        return self._runtime.status(self._runtime.container_name)
 
     def is_running(self) -> bool:
         """Check if the container is currently running."""
