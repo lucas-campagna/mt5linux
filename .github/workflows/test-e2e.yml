@@ -1,0 +1,89 @@
+name: Test E2E
+
+on:
+  pull_request:
+    paths:
+      - 'mt5linux/**'
+      - 'tests/e2e/**'
+      - '.github/workflows/test-e2e.yml'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check secrets configured
+        id: check_secrets
+        run: |
+          if [ -z "$MT5_E2E_LOGIN" ] || [ -z "$MT5_E2E_PASSWORD" ] || [ -z "$MT5_E2E_SERVER" ]; then
+            echo "MT5_E2E_LOGIN=$MT5_E2E_LOGIN"
+            echo "MT5_E2E_PASSWORD=$MT5_E2E_PASSWORD"
+            echo "MT5_E2E_SERVER=$MT5_E2E_SERVER"
+            echo "secrets_configured=false" >> $GITHUB_OUTPUT
+          else
+            echo "secrets_configured=true" >> $GITHUB_OUTPUT
+          fi
+        env:
+          MT5_E2E_LOGIN: ${{ secrets.MT5_E2E_LOGIN }}
+          MT5_E2E_PASSWORD: ${{ secrets.MT5_E2E_PASSWORD }}
+          MT5_E2E_SERVER: ${{ secrets.MT5_E2E_SERVER }}
+
+      - name: Start MT5 container
+        if: steps.check_secrets.outputs.secrets_configured == 'true'
+        run: |
+          docker pull lprett/mt5linux:latest
+          docker run -d --name mt5-test \
+            -e MT5_LOGIN=${{ secrets.MT5_E2E_LOGIN }} \
+            -e MT5_PASSWORD=${{ secrets.MT5_E2E_PASSWORD }} \
+            -e MT5_SERVER=${{ secrets.MT5_E2E_SERVER }} \
+            -p 18812:18812 \
+            lprett/mt5linux:latest
+          echo "Container started"
+
+      - name: Wait for MT5 RPyC server to be ready
+        if: steps.check_secrets.outputs.secrets_configured == 'true'
+        run: |
+          echo "Waiting for MT5 RPyC server on port 18812..."
+          timeout=300
+          while ! nc -z localhost 18812 && [ $timeout -gt 0 ]; do
+            sleep 1
+            timeout=$((timeout-1))
+          done
+          if [ $timeout -eq 0 ]; then
+            echo "MT5 RPyC server not ready after 300s"
+            docker logs mt5-test
+            exit 1
+          fi
+          echo "MT5 RPyC server is up on port 18812"
+          echo "Waiting additional time for MT5 terminal to fully initialize..."
+          sleep 60
+
+      - name: Checkout
+        if: steps.check_secrets.outputs.secrets_configured == 'true'
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        if: steps.check_secrets.outputs.secrets_configured == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install package
+        if: steps.check_secrets.outputs.secrets_configured == 'true'
+        run: pip install -e ".[dev]"
+
+      - name: Run E2E tests
+        if: steps.check_secrets.outputs.secrets_configured == 'true'
+        env:
+          MT5_E2E_MODE: remote
+          MT5_E2E_HOST: localhost
+          MT5_E2E_PORT: 18812
+          LOGIN: ${{ secrets.MT5_E2E_LOGIN }}
+          PASSWORD: ${{ secrets.MT5_E2E_PASSWORD }}
+          SERVER: ${{ secrets.MT5_E2E_SERVER }}
+        run: pytest tests/e2e/ -m "not trading" -v
+
+      - name: Stop MT5 container
+        if: always()
+        run: |
+          docker stop mt5-test || true
+          docker rm mt5-test || true
