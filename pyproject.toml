@@ -36,3 +36,12 @@ markers = [
 [tool.ruff.lint.per-file-ignores]
 # Best-effort cleanup in e2e teardowns must not mask test results.
 "tests/e2e/*" = ["S110", "BLE001"]
+# Legacy code: PEP 484 implicit Optional (param default None)
+# Legacy code: bare except, try-except-continue, blind exception
+# Legacy code: nested if statements, unsorted imports
+"mt5linux/**/*.py" = ["RUF013", "E722", "S112", "BLE001", "SIM102", "I001"]
+# Legacy code: subprocess.run without explicit check
+"mt5linux/_docker_runtime.py" = ["PLW1510"]
+"mt5linux/_udocker_runtime.py" = ["PLW1510"]
+# Legacy code: root logger usage
+"mt5linux/ui.py" = ["LOG015"]

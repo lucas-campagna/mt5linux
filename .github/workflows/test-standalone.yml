@@ -1,0 +1,21 @@
+name: Test Standalone Engine
+
+on:
+  pull_request:
+    paths:
+      - 'mt5linux/**'
+      - 'tests/e2e/test_standalone_engine.py'
+      - 'docker/**'
+      - '.github/workflows/test-standalone.yml'
+
+jobs:
+  standalone-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build test image
+        run: docker compose -f docker/docker-compose.test-standalone.yml build
+
+      - name: Run tests
+        run: docker compose -f docker/docker-compose.test-standalone.yml up --abort-on-container-exit

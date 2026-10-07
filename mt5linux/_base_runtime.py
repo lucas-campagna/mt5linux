@@ -1,9 +1,7 @@
-import subprocess
 import socket
-import uuid
 import threading
+import uuid
 from abc import ABC, abstractmethod
-from typing import Optional, Literal
 
 
 def _is_port_in_use(port: int, host: str = "127.0.0.1") -> bool:
@@ -40,7 +38,7 @@ class Runtime(ABC):
 
     def __init__(self):
         if not hasattr(self, "_runtime_name"):
-            self._runtime_name: Optional[str] = None
+            self._runtime_name: str | None = None
         self._uuid = str(uuid.uuid4())
 
     @abstractmethod
@@ -96,7 +94,7 @@ class Runtime(ABC):
                     threading.Thread(target=_cleanup).start()
 
     @property
-    def name(self) -> Optional[str]:
+    def name(self) -> str | None:
         """Get the runtime name."""
         return self._runtime_name
 
@@ -111,60 +109,59 @@ class Runtime(ABC):
         return self._runtime_name == "udocker"
 
     @property
-    def container_name(self) -> Optional[str]:
+    def is_standalone(self) -> bool:
+        """Check if runtime is standalone."""
+        return self._runtime_name == "standalone"
+
+    @property
+    def container_name(self) -> str | None:
         """Get the container name."""
         return getattr(self, "_name", None)
 
     @property
-    def port(self) -> Optional[int]:
+    def port(self) -> int | None:
         """Get the container port."""
         return getattr(self, "_port", None)
 
     @property
-    def ui_port(self) -> Optional[int]:
+    def ui_port(self) -> int | None:
         """Get the UI port."""
         return getattr(self, "_ui_port", None)
 
     @abstractmethod
     def _check_image_exists(self, image: str) -> bool:
         """Check if an image exists locally."""
-        pass
 
     @abstractmethod
     def _pull_image(self, image: str) -> bool:
         """Pull an image."""
-        pass
 
     @abstractmethod
-    def _get_container_by_port(self, port: int) -> Optional[str]:
+    def _get_container_by_port(self, port: int) -> str | None:
         """Check if a container is running on the specified port."""
-        pass
 
     @abstractmethod
-    def _get_stopped_container_by_port(self, port: int) -> Optional[str]:
+    def _get_stopped_container_by_port(self, port: int) -> str | None:
         """Check if a container is stopped on the specified port."""
-        pass
 
     @abstractmethod
     def _start_existing_container(self, name: str) -> bool:
         """Start an existing container."""
-        pass
 
     @abstractmethod
     def _run_container(
         self, name: str, image: str, ports: dict, env_vars: list
     ) -> bool:
         """Run a container with the given parameters."""
-        pass
 
     def start_container(
         self,
         host: str,
         port: int,
         image: str,
-        mt5_login: Optional[str] = None,
-        mt5_password: Optional[str] = None,
-        mt5_server: Optional[str] = None,
+        mt5_login: str | None = None,
+        mt5_password: str | None = None,
+        mt5_server: str | None = None,
         ui_port: int = None,
         ui_password: str = None,
         ui_host: str = "0.0.0.0",
@@ -238,7 +235,7 @@ class Runtime(ABC):
         )
 
         if not self._run_container(self._name, image, ports, env_vars):
-            raise RuntimeError(f"Failed to create container")
+            raise RuntimeError("Failed to create container")
 
         self._create_controlled_container_file()
 
@@ -252,9 +249,9 @@ class Runtime(ABC):
         port: int,
         name: str,
         image: str = "lprett/mt5linux:local",
-        mt5_login: Optional[str] = None,
-        mt5_password: Optional[str] = None,
-        mt5_server: Optional[str] = None,
+        mt5_login: str | None = None,
+        mt5_password: str | None = None,
+        mt5_server: str | None = None,
         vnc_password: str = None,
         novnc_port: int = None,
     ) -> bool:
@@ -289,7 +286,6 @@ class Runtime(ABC):
     @abstractmethod
     def _stop_container(self, name: str) -> bool:
         """Stop a container."""
-        pass
 
     def stop(self, name: str) -> bool:
         """Stop a container."""
@@ -298,7 +294,6 @@ class Runtime(ABC):
     @abstractmethod
     def _remove_container(self, name: str) -> bool:
         """Remove a container."""
-        pass
 
     def remove(self, name: str) -> bool:
         """Remove a container."""
@@ -307,7 +302,6 @@ class Runtime(ABC):
     @abstractmethod
     def _get_container_status(self, name: str) -> str:
         """Get the status of a container."""
-        pass
 
     def status(self, name: str) -> str:
         """Get the status of a container."""
