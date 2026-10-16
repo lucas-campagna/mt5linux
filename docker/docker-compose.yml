@@ -3,6 +3,10 @@ services:
     image: lprett/mt5linux:latest
     container_name: mt5linux
     restart: unless-stopped
+    environment:
+        MT5_SERVER: ${SERVER}
+        MT5_LOGIN: ${LOGIN}
+        MT5_PASSWORD: ${PASSWORD}
     ports:
       - 8080:8080   # noVNC page port
       - 5901:5901   # noVNC port
