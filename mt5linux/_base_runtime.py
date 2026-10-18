@@ -169,6 +169,7 @@ class Runtime(ABC):
         ui_password: str = None,
         ui_host: str = "0.0.0.0",
         vnc_port: int = 5901,
+        enable_algo: bool = False,
     ):
         """
         Start a container, reusing existing one if available.
@@ -184,6 +185,7 @@ class Runtime(ABC):
             ui_password: UI password
             ui_host: UI (noVNC) host
             vnc_port: VNC port
+            enable_algo: Allow algorithmic trading (order_send). Default = False
 
         Raises:
             RuntimeError: If container fails to start
@@ -223,6 +225,8 @@ class Runtime(ABC):
             env_vars.append(f"MT5_SERVER={mt5_server}")
         if ui_password:
             env_vars.append(f"UI_PASSWORD={ui_password}")
+        if enable_algo:
+            env_vars.append("MT5_ENABLE_ALGO=1")
         env_vars.append(f"NOVNC_PORT={self._ui_port}")
         env_vars.append(f"NOVNC_HOST={self._ui_host}")
 
@@ -257,6 +261,7 @@ class Runtime(ABC):
         mt5_server: Optional[str] = None,
         vnc_password: str = None,
         novnc_port: int = None,
+        enable_algo: bool = False,
     ) -> bool:
         """Run a new container with the specified parameters."""
         if not self._check_image_exists(image):
@@ -274,6 +279,8 @@ class Runtime(ABC):
             env_vars.append(f"MT5_SERVER={mt5_server}")
         if vnc_password:
             env_vars.append(f"UI_PASSWORD={vnc_password}")
+        if enable_algo:
+            env_vars.append("MT5_ENABLE_ALGO=1")
         env_vars.append(f"NOVNC_PORT={novnc_port}")
 
         ports = {
