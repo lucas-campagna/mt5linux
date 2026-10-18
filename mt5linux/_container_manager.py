@@ -24,6 +24,32 @@ def _mt5linux_to_plain(obj):
 '''.replace("__TAG__", MT5_TYPE_TAG)
 
 
+# The exception-marshalling half of rpyc's own SlaveService.on_connect
+# (rpyc/core/service.py). The classic path gets these flags for free because
+# rpyc.classic.connect installs ClassicService, which applies them on connect.
+# A hand-built connection does not, and so inherits rpyc's DEFAULT_CONFIG where
+# every one of them is False.
+#
+# `instantiate_custom_exceptions` is the load-bearing one. Without it a remote
+# PicklingError is rebuilt locally by rpyc.core.vinegar as a GenericException
+# subclass that merely *prints* as "_pickle.PicklingError" -- isinstance() against
+# the real PicklingError is False. The `except PicklingError` in eval() therefore
+# cannot match it, and the issue-#57 materialize fallback is never reached, so
+# every MT5 call returning a namedtuple fails under the standalone engine while
+# the identical call succeeds under docker.
+CLASSIC_CONNECTION_CONFIG = {
+    "allow_all_attrs": True,
+    "allow_pickle": True,
+    "allow_getattr": True,
+    "allow_setattr": True,
+    "allow_delattr": True,
+    "allow_exposed_attrs": False,
+    "import_custom_exceptions": True,
+    "instantiate_custom_exceptions": True,
+    "instantiate_oldstyle_exceptions": True,
+}
+
+
 class ContainerManager:
     """
     Manages mt5linux container lifecycle.
@@ -195,7 +221,9 @@ class ContainerManager:
                     s.connect((self.host, self.port))
                     stream = SocketStream(s)
                     channel = Channel(stream)
-                    self.__conn = MinimalService()._connect(channel, {})
+                    self.__conn = MinimalService()._connect(
+                        channel, dict(CLASSIC_CONNECTION_CONFIG)
+                    )
                     self.__conn._config["sync_request_timeout"] = timeout
 
                     def _eval(code):
