@@ -20,6 +20,7 @@ class MetaTrader5(object):
         vnc_port: int = 5901,
         search_on_init: bool = True,
         materialized: bool = True,
+        enable_algo: bool = False,
     ):
         """
         MetaTrader5 client for Linux.
@@ -63,6 +64,10 @@ class MetaTrader5(object):
                 (RPyC cannot pickle MT5 C-extension namedtuples). When False,
                 results are returned as plain dicts / netrefs — the old behaviour
                 before issue #57 was addressed. Default = True
+            enable_algo: bool
+                Allow algorithmic trading (order_send). Without it, order_send()
+                returns retcode 10027 "AutoTrading disabled by client".
+                Default = False. Equivalent to the MT5_ENABLE_ALGO env var.
         """
         self._search_on_init = search_on_init
         self._materialized = materialized
@@ -80,6 +85,7 @@ class MetaTrader5(object):
             ui_host=ui_host,
             vnc_port=vnc_port,
             materialized=materialized,
+            enable_algo=enable_algo,
         )
 
         self._container.execute("import sys; sys.path.append('C:\\\\mt5libs')")

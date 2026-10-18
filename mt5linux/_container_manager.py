@@ -46,6 +46,7 @@ class ContainerManager:
         ui_host: str = "0.0.0.0",
         vnc_port: int = 5901,
         materialized: bool = True,
+        enable_algo: bool = False,
     ):
         """
         Initialize ContainerManager and start container if needed.
@@ -70,6 +71,8 @@ class ContainerManager:
                 typed frozen dataclasses from mt5linux.types, solving issue #57.
                 When False, results are returned as plain dicts / netrefs
                 without any reconstruction.
+            enable_algo: Allow algorithmic trading (order_send). Default = False
+                (matches the MT5_ENABLE_ALGO env var; overrides it when set here)
         """
         self._engine = engine
         self._host = host
@@ -82,6 +85,7 @@ class ContainerManager:
         self._ui_host = ui_host
         self._vnc_port = vnc_port
         self._materialized = materialized
+        self._enable_algo = enable_algo
 
         self._runtime = create_runtime(engine)
 
@@ -96,6 +100,7 @@ class ContainerManager:
             ui_password=ui_password,
             ui_host=ui_host,
             vnc_port=vnc_port,
+            enable_algo=enable_algo,
         )
 
         self._ui = None
@@ -241,6 +246,7 @@ class ContainerManager:
         mt5_server: str | None = None,
         vnc_password: str = None,
         novnc_port: int = None,
+        enable_algo: bool = False,
     ) -> bool:
         """
         Run the mt5linux container.
@@ -253,6 +259,7 @@ class ContainerManager:
             mt5_server: Optional MT5 server
             vnc_password: VNC password (default: None, no password)
             novnc_port: noVNC port (default: auto-select)
+            enable_algo: Allow algorithmic trading (order_send). Default = False
 
         Returns:
             True if container started successfully, False otherwise
@@ -266,6 +273,7 @@ class ContainerManager:
             mt5_server=mt5_server,
             vnc_password=vnc_password,
             novnc_port=novnc_port,
+            enable_algo=enable_algo,
         )
 
     def stop(self) -> bool:
