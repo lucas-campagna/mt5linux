@@ -1,7 +1,4 @@
 import subprocess
-import os
-import tempfile
-from typing import Optional
 
 from mt5linux._base_runtime import Runtime
 
@@ -48,7 +45,7 @@ class DockerRuntime(Runtime):
         except Exception:
             return False
 
-    def _get_container_by_port(self, port: int) -> Optional[str]:
+    def _get_container_by_port(self, port: int) -> str | None:
         """Check if a Docker container is running on the specified port by image and port."""
         try:
             result = subprocess.run(
@@ -78,7 +75,7 @@ class DockerRuntime(Runtime):
         except Exception:
             return None
 
-    def _get_stopped_container_by_port(self, port: int) -> Optional[str]:
+    def _get_stopped_container_by_port(self, port: int) -> str | None:
         """Check if a Docker container is stopped on the specified port by image and port."""
         try:
             result = subprocess.run(
@@ -120,7 +117,7 @@ class DockerRuntime(Runtime):
     ) -> bool:
         """Run a container with the given parameters."""
         cmd = ["docker", "run", "-d", "--name", name]
-        for port_map in ports.keys():
+        for port_map in ports:
             cmd.extend(["-p", port_map])
         cmd.extend([f"-e {e}" for e in env_vars])
         cmd.append(image)

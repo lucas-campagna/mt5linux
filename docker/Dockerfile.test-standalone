@@ -1,0 +1,20 @@
+FROM lprett/mt5linux:latest
+
+RUN apk add --no-cache python3 py3-pip
+
+WORKDIR /app
+
+COPY pyproject.toml requirements.txt ./
+RUN pip install --no-cache-dir --break-system-packages -e .
+
+RUN pip install --no-cache-dir --break-system-packages pytest pytest-timeout
+
+COPY tests/ ./tests/
+COPY mt5linux/ ./mt5linux/
+COPY docker/test-runner.sh /test-runner.sh
+COPY docker/fake_mt5_server.py /app/fake_mt5_server.py
+RUN chmod +x /test-runner.sh /app/fake_mt5_server.py
+
+EXPOSE 18812
+
+ENTRYPOINT ["/test-runner.sh"]

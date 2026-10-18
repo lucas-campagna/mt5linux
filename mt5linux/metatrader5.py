@@ -1,7 +1,7 @@
 from mt5linux._container_manager import ContainerManager
 
 
-class MetaTrader5(object):
+class MetaTrader5:
     """MetaTrader5"""
 
     def __init__(
@@ -32,9 +32,10 @@ class MetaTrader5(object):
             timeout: int
                 Sync request timeout. Default = 300
             engine: str
-                Container engine to use: 'auto', 'docker', or 'udocker'.
-                'auto' uses docker if available, otherwise udocker.
-                Default = 'auto'
+                Container engine to use: 'auto', 'docker', 'udocker', or 'standalone'.
+                'auto' uses docker if available, otherwise udocker, otherwise standalone.
+                'standalone' attaches to an already-running RPyC server without managing
+                any container. Default = 'auto'
             image_tag: str
                 Docker image tag to use when creating a new container.
                 Default = 'latest'
@@ -1764,8 +1765,8 @@ class MetaTrader5(object):
 
         """
         code = f'mt5.copy_rates_from("{symbol}", {timeframe}, {
-            repr(date_from.astimezone())
-        }, {count})'
+            date_from.astimezone()
+        !r}, {count})'
         return self._container.eval(code)
 
     def copy_rates_from_pos(self, symbol, timeframe, start_pos, count):
@@ -2023,8 +2024,8 @@ class MetaTrader5(object):
 
         """
         code = f'mt5.copy_rates_range("{symbol}", {timeframe}, {
-            repr(date_from.astimezone())
-        }, {repr(date_to.astimezone())})'
+            date_from.astimezone()
+        !r}, {date_to.astimezone()!r})'
         return self._container.eval(code)
 
     def copy_ticks_from(self, symbol, date_from, count, flags):
@@ -2179,7 +2180,7 @@ class MetaTrader5(object):
 
 
         """
-        code = f'mt5.copy_ticks_from("{symbol}", {repr(date_from.astimezone())}, {
+        code = f'mt5.copy_ticks_from("{symbol}", {date_from.astimezone()!r}, {
             count
         }, {flags})'
         return self._container.eval(code)
@@ -2316,9 +2317,9 @@ class MetaTrader5(object):
 
             `CopyRates`, `copy_rates_from_pos`, `copy_rates_range`, `copy_ticks_from`, `copy_ticks_range`
         """
-        code = f'mt5.copy_ticks_range("{symbol}", {repr(date_from.astimezone())}, {
-            repr(date_to.astimezone())
-        }, {flags})'
+        code = f'mt5.copy_ticks_range("{symbol}", {date_from.astimezone()!r}, {
+            date_to.astimezone()
+        !r}, {flags})'
         return self._container.eval(code)
 
     def orders_total(self, *args, **kwargs):
@@ -3361,9 +3362,9 @@ class MetaTrader5(object):
 
             `history_orders_get`, `history_deals_total`
         """
-        code = f"mt5.history_orders_total({repr(date_from.astimezone())}, {
-            repr(date_to.astimezone())
-        })"
+        code = f"mt5.history_orders_total({date_from.astimezone()!r}, {
+            date_to.astimezone()
+        !r})"
         return self._container.eval(code)
 
     def history_orders_get(self, *args, **kwargs):
@@ -3570,9 +3571,9 @@ class MetaTrader5(object):
 
 
         """
-        code = f"mt5.history_deals_total({repr(date_from.astimezone())}, {
-            repr(date_to.astimezone())
-        })"
+        code = f"mt5.history_deals_total({date_from.astimezone()!r}, {
+            date_to.astimezone()
+        !r})"
         return self._container.eval(code)
 
     def history_deals_get(self, *args, **kwargs):

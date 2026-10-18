@@ -1,0 +1,9 @@
+services:
+  test-standalone:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.test-standalone
+    # No Docker socket mounted → no container runtime inside the container.
+    # This simulates the Wine-only host scenario from issue #50.
+    network_mode: host
+
