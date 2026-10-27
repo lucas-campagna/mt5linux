@@ -4,9 +4,10 @@ services:
     container_name: mt5linux
     restart: unless-stopped
     environment:
-        MT5_SERVER: ${SERVER}
-        MT5_LOGIN: ${LOGIN}
-        MT5_PASSWORD: ${PASSWORD}
+        MT5_SERVER: ${SERVER:-}
+        MT5_LOGIN: ${LOGIN:-}
+        MT5_PASSWORD: ${PASSWORD:-}
+        NOVNC_HOST: ${NOVNC_HOST:-}
     ports:
       - 8080:8080   # noVNC page port
       - 5901:5901   # noVNC port
