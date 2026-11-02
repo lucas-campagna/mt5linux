@@ -22,6 +22,7 @@ MaxBars=1000000
 
 [Experts]
 Enabled=0
+AllowLiveTrading=0
 
 [News]
 Enabled=0
@@ -116,6 +117,18 @@ EOFTERMINAL
   fi
   if [ -n "$MT5_PASSWORD" ]; then
     sed -i "s/^Password=$/Password=$MT5_PASSWORD/" /tmp/common_ini.txt
+  fi
+
+  # Opt-in algorithmic trading. MT5 rejects order_send() with retcode 10027
+  # ("AutoTrading disabled by client") unless "Allow Algo Trading" is on, which is
+  # gated by [Experts] AllowLiveTrading in common.ini. Default stays 0 so data-only
+  # users are unaffected; set MT5_ENABLE_ALGO=1 to trade. The sed is scoped to the
+  # [Experts] section so it can't flip the other [News]/[Signal]/[MarketWatch]
+  # Enabled=0 lines.
+  if [ "${MT5_ENABLE_ALGO:-0}" = "1" ]; then
+    sed -i -e '/^\[Experts\]$/,/^\[/ s/^Enabled=0$/Enabled=1/' \
+           -e '/^\[Experts\]$/,/^\[/ s/^AllowLiveTrading=0$/AllowLiveTrading=1/' \
+           /tmp/common_ini.txt
   fi
 
   iconv -f UTF-8 -t UTF-16LE /tmp/common_ini.txt >"$common_ini"

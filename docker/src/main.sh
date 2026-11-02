@@ -7,6 +7,7 @@ set -e
 . /app/src/xvfb.sh
 . /app/src/vnc.sh
 . /app/src/automation.sh
+. /app/src/algo_trading.sh
 . /app/src/config.sh
 . /app/src/mt5.sh
 
@@ -34,6 +35,11 @@ apply_mt5_config
 start_mt5
 wait_for_mt5_and_type_server &
 MT5_SETUP_PID=$!
+
+# When MT5_ENABLE_ALGO=1, enable the AutoTrading toolbar and confirm via the
+# journal (no-op otherwise). Complements the common.ini AllowLiveTrading gate.
+enable_algo_automation &
+ALGO_PID=$!
 
 start_rpyc_server
 start_watchdog
