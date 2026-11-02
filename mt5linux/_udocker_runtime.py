@@ -1,5 +1,4 @@
 import subprocess
-from typing import Optional
 
 from mt5linux._base_runtime import Runtime
 
@@ -48,7 +47,7 @@ class UdockerRuntime(Runtime):
         except Exception:
             return False
 
-    def _get_container_by_port(self, port: int) -> Optional[str]:
+    def _get_container_by_port(self, port: int) -> str | None:
         """Check if a udocker container is running on the specified port by image and port."""
         try:
             result = subprocess.run(
@@ -71,7 +70,7 @@ class UdockerRuntime(Runtime):
         except Exception:
             return None
 
-    def _get_stopped_container_by_port(self, port: int) -> Optional[str]:
+    def _get_stopped_container_by_port(self, port: int) -> str | None:
         """Check if a udocker container is stopped on the specified port by image and port."""
         try:
             result = subprocess.run(
@@ -117,7 +116,7 @@ class UdockerRuntime(Runtime):
             "--name",
             name,
         ]
-        for port_map in ports.keys():
+        for port_map in ports:
             cmd.extend(["-p", port_map])
         cmd.extend(
             [

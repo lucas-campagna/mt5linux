@@ -36,38 +36,40 @@ def mt5(mt5_credentials):
             f"no Docker daemon and no server at {DEFAULT_HOST}:{DEFAULT_PORT}; "
             "nothing to run end-to-end"
         )
-    if mode == "remote":
-        pytest.skip(
-            "only a remote mt5server is available; attaching to it requires "
-            "the standalone engine (issues #50 and #57) covered by "
-            "test_standalone_engine.py"
-        )
-
-    from helpers import find_clean_port
 
     from mt5linux import MetaTrader5
-    from mt5linux._runtime import find_available_port
 
-    client = MetaTrader5(
-        host="127.0.0.1",
-        port=find_clean_port(),
-        vnc_port=find_available_port(5901),
-        mt5_login=str(mt5_credentials["login"]),
-        mt5_password=mt5_credentials["password"],
-        mt5_server=mt5_credentials["server"],
-    )
+    if mode == "remote":
+        client = MetaTrader5(
+            host=DEFAULT_HOST,
+            port=DEFAULT_PORT,
+            engine="standalone",
+        )
+    else:
+        from helpers import find_clean_port
+        from mt5linux._runtime import find_available_port
+
+        client = MetaTrader5(
+            host="127.0.0.1",
+            port=find_clean_port(),
+            vnc_port=find_available_port(5901),
+            mt5_login=str(mt5_credentials["login"]),
+            mt5_password=mt5_credentials["password"],
+            mt5_server=mt5_credentials["server"],
+        )
     yield client
     try:
         client.shutdown()
     except Exception:
         pass
-    try:
-        runtime = client.container.get_runtime()
-        name = client.container.name
-        runtime.stop(name)
-        runtime.remove(name)
-    except Exception:
-        pass
+    if mode != "remote":
+        try:
+            runtime = client.container.get_runtime()
+            name = client.container.name
+            runtime.stop(name)
+            runtime.remove(name)
+        except Exception:
+            pass
 
 
 @pytest.fixture()

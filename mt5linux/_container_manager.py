@@ -33,7 +33,7 @@ class ContainerManager:
 
     def __init__(
         self,
-        engine: Literal["auto", "docker", "udocker"] = "auto",
+        engine: Literal["auto", "docker", "udocker", "standalone"] = "auto",
         host: str = "0.0.0.0",
         port: int = 18812,
         timeout: int = 300,
@@ -51,9 +51,10 @@ class ContainerManager:
         Initialize ContainerManager and start container if needed.
 
         Args:
-            engine: Container engine to use: 'auto', 'docker', or 'udocker'.
-                'auto' uses docker if available, otherwise udocker.
-                Default = 'auto'
+            engine: Container engine to use: 'auto', 'docker', 'udocker', or 'standalone'.
+                'auto' uses docker if available, otherwise udocker, otherwise standalone.
+                'standalone' attaches to an already-running RPyC server without managing
+                any container. Default = 'auto'
             host: Host to connect to. Default = 0.0.0.0
             port: Port for RPyC connection. Default = 18812
             timeout: Sync request timeout. Default = 300
@@ -99,7 +100,10 @@ class ContainerManager:
         )
 
         self._ui = None
-        self.__conn = self._connect(timeout=self._timeout)
+        if engine == "standalone":
+            self.__conn = self._connect_fallback(timeout=self._timeout)
+        else:
+            self.__conn = self._connect(timeout=self._timeout)
         self.__to_plain = self._install_conversion_helper() if materialized else None
 
     def _connect(self, timeout: int = 60, retry_interval: int = 2) -> rpyc.Connection:
@@ -116,27 +120,105 @@ class ContainerManager:
         Raises:
             TimeoutError: If connection cannot be established within timeout
         """
+        import socket
         import time
 
         start_time = time.time()
         last_error = None
 
-        print("Connecting....")
-        while time.time() - start_time < timeout:
-            try:
-                self.__conn = rpyc.classic.connect(self.host, self.port)
-                self.__conn._config["sync_request_timeout"] = timeout
-                self._ui = UI(self.__conn)
-                print("Connected")
-                return self.__conn
-            except Exception as e:
-                last_error = e
-                time.sleep(retry_interval)
+        original_timeout = socket.getdefaulttimeout()
+        socket.setdefaulttimeout(timeout)
+        try:
+            print("Connecting....")
+            while time.time() - start_time < timeout:
+                try:
+                    self.__conn = rpyc.classic.connect(self.host, self.port)
+                    self.__conn._config["sync_request_timeout"] = timeout
+                    self._ui = UI(self.__conn)
+                    print("Connected")
+                    return self.__conn
+                except Exception as e:
+                    last_error = e
+                    time.sleep(retry_interval)
 
-        raise TimeoutError(
-            f"Failed to connect to container at {self._host}:{self._port} "
-            f"after {timeout} seconds. Last error: {last_error}"
-        )
+            raise TimeoutError(
+                f"Failed to connect to container at {self._host}:{self._port} "
+                f"after {timeout} seconds. Last error: {last_error}"
+            )
+        finally:
+            socket.setdefaulttimeout(original_timeout)
+
+    def _connect_fallback(self, timeout: int = 60, retry_interval: int = 2) -> rpyc.Connection:
+        """
+        Fallback connect using rpyc.connect (no classic protocol) for servers
+        that don't support module exposure.
+        """
+        import socket
+        import time
+        from rpyc.core.service import Service
+        from rpyc.core.channel import Channel
+        from rpyc.core.stream import SocketStream
+
+        class MinimalService(Service):
+            _conn = None
+
+            def _install(self, conn, root):
+                pass
+
+            def on_connect(self, conn):
+                self._conn = conn
+
+            def eval(self, expr):
+                return self._conn.eval(expr)
+
+            def execute(self, code):
+                self._conn.execute(code)
+
+            @property
+            def namespace(self):
+                return self._conn.namespace if self._conn else {}
+
+            def getmodule(self, name):
+                import importlib
+                return importlib.import_module(name)
+
+        start_time = time.time()
+        last_error = None
+
+        original_timeout = socket.getdefaulttimeout()
+        socket.setdefaulttimeout(timeout)
+        try:
+            while time.time() - start_time < timeout:
+                try:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.settimeout(timeout)
+                    s.connect((self.host, self.port))
+                    stream = SocketStream(s)
+                    channel = Channel(stream)
+                    self.__conn = MinimalService()._connect(channel, {})
+                    self.__conn._config["sync_request_timeout"] = timeout
+
+                    def _eval(code):
+                        return self.__conn.root.eval(code)
+
+                    def _execute(code):
+                        self.__conn.root.execute(code)
+
+                    self.__conn.eval = _eval
+                    self.__conn.execute = _execute
+                    self._ui = None
+                    print("Connected (fallback)")
+                    return self.__conn
+                except Exception as e:
+                    last_error = e
+                    time.sleep(retry_interval)
+
+            raise TimeoutError(
+                f"Failed to connect to container at {self._host}:{self._port} "
+                f"after {timeout} seconds. Last error: {last_error}"
+            )
+        finally:
+            socket.setdefaulttimeout(original_timeout)
 
     def _install_conversion_helper(self):
         """Install the server-side result conversion helper (issue #57).
@@ -149,7 +231,7 @@ class ContainerManager:
         try:
             self.__conn.execute(HELPER_CODE)
             return self.__conn.eval("_mt5linux_to_plain")
-        except Exception:  # noqa: BLE001
+        except Exception:
             return None
 
     def eval(self, code: str):
@@ -180,7 +262,7 @@ class ContainerManager:
             return raw
         try:
             plain = rpyc.classic.obtain(self.__to_plain(raw))
-        except Exception:  # noqa: BLE001
+        except Exception:
             return raw
         return materialize(plain)
 
@@ -195,12 +277,12 @@ class ContainerManager:
 
     @property
     def engine(self) -> str:
-        """Get the engine being used ('auto', 'docker', or 'udocker')."""
+        """Get the engine being used ('auto', 'docker', 'udocker', or 'standalone')."""
         return self._engine
 
     @property
-    def runtime(self) -> Literal["docker", "udocker"] | None:
-        """Get the actual runtime being used ('docker' or 'udocker')."""
+    def runtime(self) -> Literal["docker", "udocker", "standalone"] | None:
+        """Get the actual runtime being used ('docker', 'udocker', or 'standalone')."""
         return self._runtime.name
 
     @property
@@ -228,7 +310,7 @@ class ContainerManager:
         """Get control over the UI."""
         return self._ui
 
-    def get_runtime(self) -> Literal["docker", "udocker"] | None:
+    def get_runtime(self) -> Literal["docker", "udocker", "standalone"] | None:
         """Get the container runtime."""
         return self._runtime
 
@@ -259,7 +341,7 @@ class ContainerManager:
         """
         return self._runtime.run(
             port=port,
-            name=self._name,
+            name=self._runtime.container_name,
             image=f"lprett/mt5linux:{image_tag}",
             mt5_login=mt5_login,
             mt5_password=mt5_password,
@@ -275,7 +357,7 @@ class ContainerManager:
         Returns:
             True if stopped successfully, False otherwise
         """
-        return self._runtime.stop(self._name)
+        return self._runtime.stop(self._runtime.container_name)
 
     def remove(self) -> bool:
         """
@@ -284,7 +366,7 @@ class ContainerManager:
         Returns:
             True if removed successfully, False otherwise
         """
-        return self._runtime.remove(self._name)
+        return self._runtime.remove(self._runtime.container_name)
 
     def status(self) -> str:
         """
@@ -293,7 +375,7 @@ class ContainerManager:
         Returns:
             Container status: 'running', 'exited', 'not found', etc.
         """
-        return self._runtime.status(self._name)
+        return self._runtime.status(self._runtime.container_name)
 
     def is_running(self) -> bool:
         """Check if the container is currently running."""
