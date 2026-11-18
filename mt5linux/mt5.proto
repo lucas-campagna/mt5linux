@@ -1,0 +1,326 @@
+// MT5 gRPC Protocol Definition
+// Replaces RPyC with gRPC for better async performance
+syntax = "proto3";
+package mt5;
+
+// =============================================================================
+// Basic Types
+// =============================================================================
+
+message Empty {}
+
+message BoolResponse {
+    bool result = 1;
+}
+
+message IntResponse {
+    int32 value = 1;
+}
+
+message FloatResponse {
+    optional double value = 1;
+}
+
+message ErrorInfo {
+    int32 code = 1;
+    string message = 2;
+}
+
+message MT5Version {
+    int32 major = 1;
+    int32 minor = 2;
+    string build = 3;
+}
+
+message Constants {
+    map<string, int32> values = 1;
+}
+
+// =============================================================================
+// Introspection Types (for validating protocol compliance)
+// =============================================================================
+
+// Parameter information for a method
+message ParameterInfo {
+    string name = 1;
+    string type_hint = 2;           // Type annotation as string (e.g., "int", "str | None")
+    string kind = 3;                // POSITIONAL_ONLY, POSITIONAL_OR_KEYWORD, KEYWORD_ONLY, etc.
+    bool has_default = 4;           // Whether parameter has a default value
+    string default_value = 5;       // Default value as string representation
+}
+
+// Method information from real MT5 module
+message MethodInfo {
+    string name = 1;
+    repeated ParameterInfo parameters = 2;
+    string return_type = 3;         // Return type annotation as string
+    bool is_callable = 4;           // True if this is a callable function
+}
+
+// Response containing all methods from MetaTrader5 module
+message MethodsResponse {
+    repeated MethodInfo methods = 1;
+    int32 total = 2;
+}
+
+// Field information for a model/namedtuple
+message FieldInfo {
+    string name = 1;
+    string type_hint = 2;           // Type annotation if available
+    int32 index = 3;                // Field position in the namedtuple
+}
+
+// Model (namedtuple) information from real MT5 module
+message ModelInfo {
+    string name = 1;
+    repeated FieldInfo fields = 2;
+    bool is_namedtuple = 3;
+}
+
+// Response containing all models from MetaTrader5 module
+message ModelsResponse {
+    repeated ModelInfo models = 1;
+    int32 total = 2;
+}
+
+// =============================================================================
+// Data Types (JSON-serialized dict representation)
+// =============================================================================
+
+// Generic dict data - fields are JSON-serialized values
+message DictData {
+    string json_data = 1;  // JSON string of the dict
+}
+
+// List of dicts
+message DictList {
+    repeated string json_items = 1;  // List of JSON strings
+}
+
+// Numpy array as bytes (replaces RPyC obtain())
+message NumpyArray {
+    bytes data = 1;       // numpy.tobytes()
+    string dtype = 2;     // numpy dtype string
+    repeated int32 shape = 3;
+}
+
+// Chunked symbols response (same as current bridge.py)
+message SymbolsResponse {
+    int32 total = 1;
+    repeated string chunks = 2;  // List of JSON arrays (chunked)
+}
+
+// =============================================================================
+// Health Check
+// =============================================================================
+
+message HealthStatus {
+    bool healthy = 1;
+    bool mt5_available = 2;
+    bool connected = 3;
+    bool trade_allowed = 4;
+    int32 build = 5;
+    string reason = 6;
+}
+
+// =============================================================================
+// Request Messages
+// =============================================================================
+
+message InitRequest {
+    optional string path = 1;
+    optional int64 login = 2;
+    optional string password = 3;
+    optional string server = 4;
+    optional int32 timeout = 5;
+    bool portable = 6;
+}
+
+message LoginRequest {
+    int64 login = 1;
+    string password = 2;
+    string server = 3;
+    int32 timeout = 4;
+}
+
+message SymbolRequest {
+    string symbol = 1;
+}
+
+message SymbolsRequest {
+    optional string group = 1;
+}
+
+message SymbolSelectRequest {
+    string symbol = 1;
+    bool enable = 2;
+}
+
+message CopyRatesRequest {
+    string symbol = 1;
+    int32 timeframe = 2;
+    int64 date_from = 3;
+    int32 count = 4;
+}
+
+message CopyRatesPosRequest {
+    string symbol = 1;
+    int32 timeframe = 2;
+    int32 start_pos = 3;
+    int32 count = 4;
+}
+
+message CopyRatesRangeRequest {
+    string symbol = 1;
+    int32 timeframe = 2;
+    int64 date_from = 3;
+    int64 date_to = 4;
+}
+
+message CopyTicksRequest {
+    string symbol = 1;
+    int64 date_from = 2;
+    int32 count = 3;
+    int32 flags = 4;
+}
+
+message CopyTicksRangeRequest {
+    string symbol = 1;
+    int64 date_from = 2;
+    int64 date_to = 3;
+    int32 flags = 4;
+}
+
+message OrderRequest {
+    string json_request = 1;  // JSON-serialized order dict
+}
+
+message PositionsRequest {
+    optional string symbol = 1;
+    optional string group = 2;
+    optional int64 ticket = 3;
+}
+
+message OrdersRequest {
+    optional string symbol = 1;
+    optional string group = 2;
+    optional int64 ticket = 3;
+}
+
+message HistoryRequest {
+    optional int64 date_from = 1;
+    optional int64 date_to = 2;
+    optional string group = 3;
+    optional int64 ticket = 4;
+    optional int64 position = 5;
+}
+
+message MarginRequest {
+    int32 action = 1;
+    string symbol = 2;
+    double volume = 3;
+    double price = 4;
+}
+
+message ProfitRequest {
+    int32 action = 1;
+    string symbol = 2;
+    double volume = 3;
+    double price_open = 4;
+    double price_close = 5;
+}
+
+// =============================================================================
+// Account provisioning (mt5docker container management)
+// =============================================================================
+
+// The account this container is configured for / has provisioned. Filled from
+// /config/auto_demo.json + startup.ini; the live `connected` flag comes from the
+// terminal. Account fields are best-effort (login=0 when never provisioned).
+message ProvisionedAccount {
+    int64 login = 1;
+    string server = 2;
+    string email = 3;
+    string created_at = 4;
+    bool login_confirmed = 5;
+    bool credentials_persisted = 6;
+    bool connected = 7;
+    string source = 8;
+}
+
+// Parameters for creating a fresh demo account at runtime (the wizard otherwise
+// reads these from MT5_DEMO_* env at boot). Empty fields fall back to defaults.
+message CreateDemoRequest {
+    string server = 1;
+    string email = 2;
+    string phone = 3;
+    string first_name = 4;
+    string last_name = 5;
+    string dob_year = 6;
+}
+
+// =============================================================================
+// MT5 Service Definition
+// =============================================================================
+
+service MT5Service {
+    // Terminal operations
+    rpc HealthCheck(Empty) returns (HealthStatus);
+    rpc Initialize(InitRequest) returns (BoolResponse);
+    rpc Login(LoginRequest) returns (BoolResponse);
+    rpc Shutdown(Empty) returns (Empty);
+    rpc Version(Empty) returns (MT5Version);
+    rpc LastError(Empty) returns (ErrorInfo);
+    rpc GetConstants(Empty) returns (Constants);
+
+    // Introspection (for protocol validation)
+    rpc GetMethods(Empty) returns (MethodsResponse);
+    rpc GetModels(Empty) returns (ModelsResponse);
+
+    // Account/Terminal info
+    rpc TerminalInfo(Empty) returns (DictData);
+    rpc AccountInfo(Empty) returns (DictData);
+
+    // Account provisioning (container management)
+    rpc GetProvisionedAccount(Empty) returns (ProvisionedAccount);
+    rpc CreateDemoAccount(CreateDemoRequest) returns (ProvisionedAccount);
+
+    // Symbol operations
+    rpc SymbolsTotal(Empty) returns (IntResponse);
+    rpc SymbolsGet(SymbolsRequest) returns (SymbolsResponse);
+    rpc SymbolInfo(SymbolRequest) returns (DictData);
+    rpc SymbolInfoTick(SymbolRequest) returns (DictData);
+    rpc SymbolSelect(SymbolSelectRequest) returns (BoolResponse);
+
+    // Market data - returns numpy arrays as bytes
+    rpc CopyRatesFrom(CopyRatesRequest) returns (NumpyArray);
+    rpc CopyRatesFromPos(CopyRatesPosRequest) returns (NumpyArray);
+    rpc CopyRatesRange(CopyRatesRangeRequest) returns (NumpyArray);
+    rpc CopyTicksFrom(CopyTicksRequest) returns (NumpyArray);
+    rpc CopyTicksRange(CopyTicksRangeRequest) returns (NumpyArray);
+
+    // Trading operations
+    rpc OrderCalcMargin(MarginRequest) returns (FloatResponse);
+    rpc OrderCalcProfit(ProfitRequest) returns (FloatResponse);
+    rpc OrderCheck(OrderRequest) returns (DictData);
+    rpc OrderSend(OrderRequest) returns (DictData);
+
+    // Position operations
+    rpc PositionsTotal(Empty) returns (IntResponse);
+    rpc PositionsGet(PositionsRequest) returns (DictList);
+
+    // Order operations
+    rpc OrdersTotal(Empty) returns (IntResponse);
+    rpc OrdersGet(OrdersRequest) returns (DictList);
+
+    // History operations
+    rpc HistoryOrdersTotal(HistoryRequest) returns (IntResponse);
+    rpc HistoryOrdersGet(HistoryRequest) returns (DictList);
+    rpc HistoryDealsTotal(HistoryRequest) returns (IntResponse);
+    rpc HistoryDealsGet(HistoryRequest) returns (DictList);
+
+    // Market Depth (DOM) operations
+    rpc MarketBookAdd(SymbolRequest) returns (BoolResponse);
+    rpc MarketBookGet(SymbolRequest) returns (DictList);
+    rpc MarketBookRelease(SymbolRequest) returns (BoolResponse);
+}
